@@ -1,0 +1,495 @@
+<title>Yield Perp Accelerated Build Plan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#f3f2ed; --surface:#ffffff; --surface-2:#eae7de; --ink:#1b2430; --muted:#5b6472;
+    --border:#d8d4c8; --accent:#0f6e5c; --accent-soft:#e3ede9; --accent-2:#33517a; --accent-2-soft:#e6eaf1;
+    --accent-3:#7a4e76; --accent-3-soft:#f0e6ee; --flag:#9c6b14; --flag-bg:#f4e6c6; --flag-border:#dcc386;
+    --today:#c23b3b; --cut:#7a2f2f; --cut-bg:#f6e2df; --cut-border:#e0b7ae;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#11161c; --surface:#1a2129; --surface-2:#212a32; --ink:#eae7dd; --muted:#9aa3ac;
+      --border:#333c44; --accent:#35b79b; --accent-soft:#173029; --accent-2:#84a4d9; --accent-2-soft:#1a2536;
+      --accent-3:#cf98c6; --accent-3-soft:#2c1f2a; --flag:#e2b263; --flag-bg:#332711; --flag-border:#4d3c1a;
+      --today:#e2685f; --cut:#e08e83; --cut-bg:#33201d; --cut-border:#5a332d;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#11161c; --surface:#1a2129; --surface-2:#212a32; --ink:#eae7dd; --muted:#9aa3ac;
+    --border:#333c44; --accent:#35b79b; --accent-soft:#173029; --accent-2:#84a4d9; --accent-2-soft:#1a2536;
+    --accent-3:#cf98c6; --accent-3-soft:#2c1f2a; --flag:#e2b263; --flag-bg:#332711; --flag-border:#4d3c1a;
+    --today:#e2685f; --cut:#e08e83; --cut-bg:#33201d; --cut-border:#5a332d;
+  }
+  *{box-sizing:border-box;}
+  body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans', system-ui, sans-serif;line-height:1.6;}
+  .page{max-width:900px;margin:0 auto;padding:44px 24px 80px;}
+  h1,h2,h3,h4{font-family:'Newsreader', Georgia, serif;text-wrap:balance;font-weight:600;color:var(--ink);}
+  h1{font-size:2.1rem;margin:0 0 6px;letter-spacing:-0.01em;}
+  h2{font-size:1.28rem;margin:0 0 4px;}
+  h3{font-size:1.05rem;margin:0;font-weight:600;}
+  h4{font-size:0.92rem;margin:0 0 6px;font-weight:600;font-family:'IBM Plex Sans',sans-serif;}
+  p{margin:0 0 12px;}
+  p:last-child{margin-bottom:0;}
+  .mono{font-family:'IBM Plex Mono', ui-monospace, monospace;font-variant-numeric:tabular-nums;}
+  .eyebrow{font-family:'IBM Plex Mono', monospace;text-transform:uppercase;letter-spacing:0.09em;font-size:0.72rem;color:var(--muted);}
+  .lede{color:var(--muted);font-size:0.98rem;max-width:66ch;margin:10px 0 0;}
+  .prose{max-width:70ch;font-size:0.94rem;}
+  .prose p{margin:0 0 13px;}
+  header.hero{border-bottom:1px solid var(--border);padding-bottom:26px;margin-bottom:24px;}
+
+  .super-note{
+    display:flex;gap:10px;align-items:flex-start;
+    background:var(--accent-soft);border:1px solid var(--accent);border-radius:4px;
+    padding:12px 15px;margin-bottom:24px;font-size:0.86rem;
+  }
+  .super-note b{color:var(--accent);}
+  .super-note a{color:var(--accent);font-weight:600;}
+
+  .capstrip{display:grid;grid-template-columns:repeat(auto-fit, minmax(180px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin-top:20px;border-radius:3px;overflow:hidden;}
+  .cap-cell{background:var(--surface);padding:14px 16px;}
+  .cap-cell .k{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+  .cap-cell .v{font-family:'IBM Plex Mono',monospace;font-size:1.2rem;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums;}
+  .cap-cell .v small{font-size:0.6em;color:var(--muted);font-weight:400;}
+  .cap-cell.contracts .v{color:var(--accent);}
+  .cap-cell.backend .v{color:var(--accent-2);}
+  .cap-cell.frontend .v{color:var(--accent-3);}
+  .cap-cell .delta{font-size:0.7rem;color:var(--flag);margin-top:2px;}
+
+  section{margin:44px 0;}
+  section.tight{margin:28px 0;}
+  .track-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+  .swatch{width:11px;height:11px;border-radius:2px;flex:none;}
+  .swatch.contracts{background:var(--accent);} .swatch.backend{background:var(--accent-2);} .swatch.frontend{background:var(--accent-3);}
+  .track-total{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:0.85rem;color:var(--muted);}
+  .track-total b{color:var(--ink);}
+  .placeholder-tag{
+    font-family:'IBM Plex Mono',monospace;font-size:0.62rem;text-transform:uppercase;letter-spacing:0.05em;
+    background:var(--flag-bg);color:var(--flag);border:1px solid var(--flag-border);border-radius:3px;padding:2px 6px;
+  }
+
+  table{width:100%;border-collapse:collapse;font-size:0.87rem;}
+  .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:4px;}
+  th,td{padding:9px 14px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top;}
+  thead th{font-family:'IBM Plex Mono',monospace;font-size:0.66rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);background:var(--surface-2);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:nth-child(even){background:color-mix(in srgb, var(--surface-2) 35%, transparent);}
+  td.hrs{font-family:'IBM Plex Mono',monospace;text-align:right;white-space:nowrap;}
+  td.wk{font-family:'IBM Plex Mono',monospace;color:var(--muted);font-size:0.8rem;white-space:nowrap;}
+  tfoot td{font-weight:600;font-family:'IBM Plex Mono',monospace;background:var(--surface-2);border-top:1px solid var(--border);}
+  tfoot td.hrs{text-align:right;}
+  .row-note{font-size:0.78rem;color:var(--muted);font-style:italic;margin-top:4px;font-family:'IBM Plex Sans',sans-serif;}
+
+  /* jargon explainer callouts */
+  .explainer{
+    border-left:3px solid var(--accent);
+    background:var(--accent-soft);
+    border-radius:0 4px 4px 0;
+    padding:13px 16px;
+    margin:16px 0;
+    font-size:0.88rem;
+  }
+  .explainer.backend-tone{border-left-color:var(--accent-2);background:var(--accent-2-soft);}
+  .explainer .term{
+    font-family:'IBM Plex Mono',monospace;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;
+    color:var(--accent);display:block;margin-bottom:6px;
+  }
+  .explainer.backend-tone .term{color:var(--accent-2);}
+  .explainer p{margin:0 0 8px;}
+  .explainer p:last-child{margin-bottom:0;}
+
+  /* user journey */
+  .who{
+    display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:0.64rem;text-transform:uppercase;
+    letter-spacing:0.05em;padding:2px 7px;border-radius:3px;white-space:nowrap;
+  }
+  .who.user{background:var(--surface-2);color:var(--ink);}
+  .who.backend{background:var(--accent-2-soft);color:var(--accent-2);}
+  .who.chain{background:var(--accent-soft);color:var(--accent);}
+  td.step{font-family:'IBM Plex Mono',monospace;color:var(--muted);font-size:0.8rem;width:26px;}
+
+  .gantt-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:4px;background:var(--surface);}
+  .gantt{min-width:640px;padding:16px 18px 18px;}
+  .gantt-weeks{display:grid;grid-template-columns:150px repeat(4, 1fr);font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--muted);margin-bottom:6px;}
+  .gantt-weeks div{padding:2px 3px;text-align:center;border-left:1px solid var(--border);}
+  .gantt-weeks div:first-child{border-left:none;}
+  .gantt-row{display:grid;grid-template-columns:150px repeat(4, 1fr);align-items:center;min-height:30px;}
+  .gantt-row + .gantt-row{border-top:1px dashed var(--border);}
+  .gantt-label{font-family:'IBM Plex Mono',monospace;font-size:0.74rem;color:var(--muted);padding-right:8px;}
+  .gantt-track{grid-column:2 / span 4;position:relative;height:20px;}
+  .bar{position:absolute;top:0;height:20px;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:0.62rem;display:flex;align-items:center;padding:0 7px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0.95;}
+  .bar.contracts{background:var(--accent);} .bar.backend{background:var(--accent-2);} .bar.frontend{background:var(--accent-3);} .bar.buffer{background:var(--muted);opacity:0.55;}
+  .gantt-legend{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap;font-size:0.76rem;color:var(--muted);}
+  .gantt-legend span{display:inline-flex;align-items:center;gap:6px;}
+  .gantt-legend i{width:10px;height:10px;border-radius:2px;display:inline-block;}
+
+  .milestones{list-style:none;margin:0;padding:0;border-left:2px solid var(--border);}
+  .milestones li{position:relative;padding:2px 0 18px 22px;}
+  .milestones li::before{content:'';position:absolute;left:-6.5px;top:5px;width:11px;height:11px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);}
+  .milestones .date{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--accent);display:block;}
+  .milestones .what{font-size:0.92rem;margin-top:1px;}
+
+  .callout{border:1px solid var(--flag-border);background:var(--flag-bg);border-radius:4px;padding:16px 18px;}
+  .callout h3{color:var(--flag);font-size:0.9rem;text-transform:uppercase;letter-spacing:0.04em;font-family:'IBM Plex Mono',monospace;margin-bottom:10px;}
+  .callout ul{margin:0;padding-left:18px;}
+  .callout li{margin-bottom:8px;font-size:0.88rem;}
+  .callout li:last-child{margin-bottom:0;}
+  .callout b{color:var(--ink);}
+
+  .cut-box{border:1px solid var(--cut-border);background:var(--cut-bg);border-radius:4px;padding:16px 18px;}
+  .cut-box h3{color:var(--cut);font-size:0.9rem;text-transform:uppercase;letter-spacing:0.04em;font-family:'IBM Plex Mono',monospace;margin-bottom:10px;}
+  .cut-box table{font-size:0.85rem;}
+  .cut-box td, .cut-box th{border-color:var(--cut-border);}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  @media (max-width:720px){.two-col{grid-template-columns:1fr;}}
+
+  .seat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0;}
+  @media (max-width:720px){.seat-grid{grid-template-columns:1fr;}}
+  .seat-card{border:1px solid var(--border);border-radius:4px;padding:13px 15px;background:var(--surface);}
+  .seat-card h4{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;color:var(--muted);margin-bottom:7px;}
+  .seat-card p{font-size:0.86rem;margin:0;}
+
+  footer{margin-top:52px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:0.78rem;}
+</style>
+
+<div class="page">
+
+  <header class="hero">
+    <div class="eyebrow">Cardinal Protocol · Yield Perp · Testnet v1 · Accelerated</div>
+    <h1>Accelerated Build Plan — Target Oct 1</h1>
+    <p class="lede">Same product, compressed from ~14 weeks to ~3.3 weeks by pulling both levers at once: real scope cuts (deferred, not padding) plus a capacity surge from Leifu and a new frontend hire — Steve's hours stay normal. Written so anyone can pick this up cold — starts <b>Wed Sep 9, 2026</b>.</p>
+
+    <div class="capstrip">
+      <div class="cap-cell contracts">
+        <div class="k">Contracts — Steve</div>
+        <div class="v">10 <small>hr/wk</small></div>
+        <div class="delta">within normal 5–10 hr/wk range</div>
+      </div>
+      <div class="cap-cell backend">
+        <div class="k">Backend — Leifu</div>
+        <div class="v">~35 <small>hr/wk</small></div>
+        <div class="delta">was 20 hr/wk, backend only now</div>
+      </div>
+      <div class="cap-cell frontend">
+        <div class="k">Frontend — FrontendDevX</div>
+        <div class="v">~18 <small>hr/wk</small></div>
+        <div class="delta">placeholder — needs a name</div>
+      </div>
+      <div class="cap-cell">
+        <div class="k">Scoped effort</div>
+        <div class="v">193 <small>hrs</small></div>
+        <div class="delta">was 324 hrs</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ WHAT WE'RE BUILDING ============ -->
+  <section>
+    <h2>What we're building</h2>
+    <div class="prose" style="margin-top:12px;">
+      <p>A <b>yield perpetual</b> ("yield perp") is a trading product where, instead of placing a bet and closing it out once for a single win or loss, a trader makes a standing bet about how a price will <i>behave</i> — and gets paid continuously, like interest, for every moment that bet holds up. They keep getting paid (or keep paying) tick by tick until they choose to close, or until they run out of margin.</p>
+      <p>There's no other trader on the other side of that bet. A shared pool of capital from liquidity providers ("LPs") is the permanent counterparty for every position, every trader, all the time. When traders lose, the pool earns; when traders win, the pool pays out of that same shared capital.</p>
+      <p>For this first version, trading happens with faucet-minted play money as part of a time-boxed competition — whoever grows their balance the most by the deadline wins a real prize, paid out manually by the team afterward. That's what lets us skip a lot of the machinery a real-money version would need (real hedging, multiple oracles, a multisig) while keeping the actual trading mechanics real.</p>
+    </div>
+
+    <h3 style="margin-top:22px;margin-bottom:4px;">Three ways to bet ("seats")</h3>
+    <div class="seat-grid">
+      <div class="seat-card">
+        <h4>Range</h4>
+        <p>"Price stays roughly where it is." The trader picks a band around today's price and earns for every moment price stays inside it — loses, faster and faster, the further price wanders outside.</p>
+      </div>
+      <div class="seat-card">
+        <h4>Long</h4>
+        <p>"Price goes up, or at least doesn't fall too far too fast." A line starts just below today's price and slowly climbs toward it over time. The trader earns while price stays above that line — loses once price falls to or below it.</p>
+      </div>
+      <div class="seat-card">
+        <h4>Short</h4>
+        <p>The mirror of Long: the line starts just above today's price and falls toward it. The trader earns while price stays below the line.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:22px;margin-bottom:4px;">Margin, leverage, and getting paid</h3>
+    <div class="prose">
+      <p>A trader puts up real capital ("margin") and picks a <b>leverage</b> multiplier — for this launch, 25× or 100×. Leverage scales up the size of the bet (the "notional") without requiring more capital, which means bigger swings in both directions, and a proportionally tighter band or line to match — higher leverage is a sharper, faster-moving bet, not just a bigger one.</p>
+      <p>Every few seconds, a backend engine checks whether the price is currently inside or outside the trader's condition and credits or debits the position a small amount — scaled by how deep inside/outside price is, and by how volatile the market currently is compared to when the position opened. Calmer-than-usual markets slow everything down (both earning and draining); more volatile-than-usual markets speed everything up.</p>
+      <p>Periodically — every time a position's net gain or loss crosses a fixed threshold, called an <b>epoch</b> — two things happen: the gain earned so far is paid into the trader's withdrawable balance, and a small funding fee is charged for that epoch. Older versions of this design charged that fee as one lump sum at the epoch boundary, which could feel jarring (a trader could be doing fine and then watch a chunk disappear all at once). This build uses <b>carry-forward settlement</b> instead: each boundary charges one small, fixed-size slice and remembers whatever's left over for the next one — smoother, and the total charged is identical either way.</p>
+    </div>
+  </section>
+
+  <!-- ============ USER JOURNEY ============ -->
+  <section>
+    <h2>The user's actual journey</h2>
+    <p class="lede" style="margin-top:6px;margin-bottom:14px;">Every step is either something the <span class="who user">user</span> does with their wallet, something the <span class="who backend">backend</span> computes and signs, or something that actually happens <span class="who chain">on-chain</span>. Most of a position's life (step 4) touches none of the three — it's just numbers changing in a database.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th style="width:26px;">#</th><th style="width:90px;">Who</th><th>What happens</th></tr></thead>
+        <tbody>
+          <tr><td class="step">1</td><td><span class="who user">User</span></td><td>Connects a wallet, picks a seat (Range/Long/Short), a leverage tier, and how much to commit. The frontend shows a live fee quote before they commit to anything.</td></tr>
+          <tr><td class="step">2</td><td><span class="who user">User</span></td><td>Signs an <b>intent</b> with their wallet — a structured, human-readable message ("Open a 100× Long, $500 committed, max 40bps entry fee") saying what they want to do. No gas paid yet; this is just a signature.</td></tr>
+          <tr><td class="step">3</td><td><span class="who backend">Backend</span></td><td>Computes the exact fee and opening terms at this instant, co-signs its own confirmation of those terms (a <b>Quote</b>), and submits one blockchain transaction that checks both signatures and executes the open.</td></tr>
+          <tr><td class="step">4</td><td><span class="who chain">Chain</span></td><td>Pulls the trader's margin into the shared vault and records the bare minimum on-chain: who opened it, how much margin is locked, and that it's now "open." No gas cost to the trader beyond this one transaction.</td></tr>
+          <tr><td class="step">5</td><td><span class="who backend">Backend</span></td><td><i>(Ongoing, every few seconds)</i> Checks the position against the live price and credits or debits it inside the database. Free, instant, no blockchain involved — this is what lets the product tick continuously without a transaction fee every few seconds.</td></tr>
+          <tr><td class="step">6</td><td><span class="who backend">Backend</span></td><td><i>(Periodically, at each epoch)</i> Pays the accrued gain into the trader's withdrawable balance and charges that epoch's fee from margin — or parks the position (flows pause, nothing closes) if margin can't cover it.</td></tr>
+          <tr><td class="step">7</td><td><span class="who user">User</span> → <span class="who backend">Backend</span> → <span class="who chain">Chain</span></td><td>Whenever the trader wants out, they sign a close intent; the backend prices the final PnL, countersigns, and submits the closing transaction. Margin plus any gains are released.</td></tr>
+          <tr><td class="step">8</td><td><span class="who user">User</span> → <span class="who chain">Chain</span></td><td>Separately, at any time, the trader can pull their already-earned withdrawable balance out of the vault. In this accelerated plan, that step is admin-processed rather than fully self-serve — see the withdrawal explainer in the Backend track below.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="tight">
+    <h2>What actually changed to hit Oct 1</h2>
+    <div class="two-col" style="margin-top:14px;">
+      <div>
+        <h3 style="margin-bottom:8px;">Where the extra speed comes from</h3>
+        <p class="lede" style="margin-top:0;">Leifu ~1.75× his normal load and now backend-only, plus a new third contributor running frontend in parallel from day one instead of after backend finishes. Steve stays inside his normal 5–10 hr/wk range — contracts compresses through re-scoping to 31 itemized hours, with integration testing and security review folded into ongoing collaboration with Leifu rather than scheduled as separate blocks.</p>
+      </div>
+      <div>
+        <h3 style="margin-bottom:8px;">Real product cuts (explained where they land, below)</h3>
+        <p class="lede" style="margin-top:0;">Self-serve Merkle withdrawal, Re-center/Re-anchor, two of the four leverage rungs, and test/security depth all move to a post-launch hardening pass. Nothing here is trimmed padding — it's functionality the competition can genuinely launch without.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTRACTS ============ -->
+  <section>
+    <div class="track-head">
+      <span class="swatch contracts"></span><h2>Track A — Contracts</h2>
+      <span class="track-total">owner <b>Steve</b> · <b class="mono">31 hrs</b> itemized (was 90) @ 10 hr/wk</span>
+    </div>
+    <div class="prose">
+      <p>Everything expensive to compute — pricing, per-tick accrual, funding — happens off-chain, in the backend. The blockchain's only job is to be the trust anchor for the few moments actual money needs to move: locking a trader's margin when they open, paying it back out when they close, and releasing earned funds on withdrawal. That narrow job is split across exactly two contracts.</p>
+    </div>
+
+    <div class="explainer">
+      <span class="term">Vault + ERC-4626</span>
+      <p><b><span class="mono">YieldPerpVault</span></b> is the one place that ever actually holds money — every trader's margin and all of the LPs' pooled capital. LPs deposit the test collateral token and receive a receipt token back representing their share of the pool; that receipt's value rises and falls with the pool's overall performance.</p>
+      <p>This exact pattern — pool deposits, issue proportional shares, redeem shares for a proportional cut of the pool — is common enough on Ethereum that there's a standard interface for it: <b>ERC-4626</b>, the "tokenized vault" standard. Using it means every wallet, block explorer, and integrator already knows how to read this contract's balances and shares without custom code. Solady (a gas-optimized contract library already vendored in this repo) ships a ready-built ERC-4626 implementation, so this task is wiring it up with the right parameters, not writing share math from scratch.</p>
+    </div>
+
+    <div class="explainer">
+      <span class="term">Settlement contract + the "satellite" pattern</span>
+      <p><b><span class="mono">YieldPerpSettlement</span></b> holds none of the money — it holds the <i>decision logic</i>: whose signatures are valid, what a position's current status is (open / parked / closed), and how much margin is locked against it. When it needs to actually move funds, it calls back into the Vault through a narrow, restricted interface rather than touching tokens itself.</p>
+      <p>The reason for splitting these two apart: the contract that custodies everyone's money should be as simple and unchanging as possible, since a bug there is catastrophic. The contract with more complex, more likely-to-evolve logic (which is exactly what Settlement is) can be swapped out or upgraded later without the Vault — or anyone's actual funds — ever being touched.</p>
+    </div>
+
+    <div class="explainer">
+      <span class="term">Signed intents + EIP-712</span>
+      <p>Every action a trader takes needs their explicit, unambiguous authorization. The naive way to do that — sign a raw blob of bytes with your wallet — is bad UX (you can't read what you're agreeing to) and a phishing risk (you can't easily tell a legitimate signature request from a malicious one). <b>EIP-712</b> is the Ethereum standard that fixes this: it lets a wallet show the user a readable, labeled message — trader, action, leverage, amount, expiry — instead of gibberish, and produces a signature the contract can later verify came from exactly that person, over exactly those terms.</p>
+      <p>Because pricing changes every few seconds, a trader's signature alone ("I want to open this") isn't enough proof of what price it should execute at. So the backend's own key (the "operator") co-signs a second message — a <b>Quote</b> — locking in the exact terms at execution time. The contract checks both signatures before moving anything, so neither side can quietly change the deal after the fact.</p>
+    </div>
+
+    <div class="explainer">
+      <span class="term">The governance fee table</span>
+      <p>Every leverage tier has its own row in a small table of numbers that make up that tier's fee — an amount taken when a position opens and again at every funding epoch. Storing this table on-chain with an admin-only update function means the team can retune fees as real competition data comes in (win rates, market conditions) without redeploying any contract. <span style="color:var(--flag);">Only 2 rows ship at launch (25× and 100×) — see the cuts table below.</span></p>
+    </div>
+
+    <div class="explainer">
+      <span class="term">Admission cap</span>
+      <p>Before letting any new position open, the contract checks that the pool's total worst-case exposure across every open position stays under a fixed slice of the pool's total value (its <b>NAV</b> — net asset value: LP capital, adjusted for what traders currently owe or are owed). This keeps the pool from ever taking on more risk than its capital could plausibly cover.</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Task</th><th>Week</th><th>Hrs</th></tr></thead>
+        <tbody>
+          <tr><td>Repo scaffold + <span class="mono">YieldPerpVault</span> (Solady ERC-4626, NAV/freeNAV cap, restricted hook for the Settlement contract to call)</td><td class="wk">W1</td><td class="hrs">6</td></tr>
+          <tr><td><span class="mono">YieldPerpSettlement</span> — position struct + EIP-712 intent/Quote verification (admin close-out as a plain owner-only function, not a full signed-intent type)</td><td class="wk">W1–2</td><td class="hrs">7</td></tr>
+          <tr><td>On-chain governance fee-table storage + admin setter/versioning</td><td class="wk">W2</td><td class="hrs">3</td></tr>
+          <tr><td>Admin-triggered withdrawal function <i>(no Merkle proof machinery — cut, explained in Track B)</i></td><td class="wk">W2</td><td class="hrs">1</td></tr>
+          <tr><td>Admin ops: admission-cap check, pause switch, admin close-out</td><td class="wk">W2</td><td class="hrs">3</td></tr>
+          <tr><td>Foundry unit tests — core paths only <i>(depth reduced — cut)</i></td><td class="wk">W2–3</td><td class="hrs">10</td></tr>
+          <tr><td>Testnet deploy scripts + wiring + seed LP + register operator key</td><td class="wk">W3</td><td class="hrs">1</td></tr>
+          <tr>
+            <td>Contract ↔ backend integration testing
+              <div class="row-note">No block of hours — this happens continuously through W1–3 via frequent contact with Leifu as each piece lands, not as a scheduled task.</div>
+            </td>
+            <td class="wk">ongoing</td><td class="hrs">—</td>
+          </tr>
+          <tr>
+            <td>Security self-review pass
+              <div class="row-note">Same deal — reviewed continuously alongside the core work throughout the sprint, not as a discrete pass at the end.</div>
+            </td>
+            <td class="wk">ongoing</td><td class="hrs">—</td>
+          </tr>
+        </tbody>
+        <tfoot><tr><td>Total (itemized)</td><td></td><td class="hrs">31</td></tr></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ BACKEND ============ -->
+  <section>
+    <div class="track-head">
+      <span class="swatch backend"></span><h2>Track B — Backend</h2>
+      <span class="track-total">owner <b>Leifu</b> · <b class="mono">107 hrs</b> (was 150) @ ~35 hr/wk</span>
+    </div>
+    <div class="prose">
+      <p>This is where nearly all of the actual product logic lives. Checking every open position's price condition every few seconds is far too slow and expensive to do on a blockchain directly — so instead, a normal database (Postgres) holds the live truth about every position, and a set of always-running services keep it correct and act on it. The blockchain only hears about the moments money actually moves.</p>
+    </div>
+
+    <div class="explainer backend-tone">
+      <span class="term">The pricing/accrual "tick engine"</span>
+      <p>This is the heart of the product — a service that wakes up every few seconds and, for every open position, checks the live price against that position's band or line and adds or subtracts a small amount from its running total. It's also what implements the position-time "clock" for Long/Short seats (the line's climb speeds up in a more volatile market than the one the position opened in, slows down in a calmer one) and the carry-forward funding math described above. Because this is the one piece of code that literally determines who owes what, it's the least-cut item in this whole plan.</p>
+    </div>
+
+    <div class="explainer backend-tone">
+      <span class="term">Realized-volatility feed</span>
+      <p>The engine above needs one live number: how volatile the index currently is, compared to when a position was opened. That's computed as a rolling average of recent price swings that weights recent moves more heavily than older ones (an <b>EWMA</b> — exponentially-weighted moving average), so it reacts to real shifts in market conditions without jumping around on every single tick.</p>
+    </div>
+
+    <div class="explainer backend-tone">
+      <span class="term">Intent executor</span>
+      <p>The service that watches for signed intents arriving from the frontend, checks them against the live tick engine's numbers, computes the exact fee, signs the operator's half of the Quote (see the EIP-712 explainer in Track A), and submits the one blockchain transaction that actually executes the action. This is the bridge between "a user clicked a button and signed a message" and "money moved on-chain."</p>
+    </div>
+
+    <div class="explainer backend-tone">
+      <span class="term">Withdrawals — how a self-serve claim <i>would</i> work, and why we're cutting it here</span>
+      <p>A trader's earned balance lives only in the database until they withdraw it. The trust-minimized way to let someone pull that money out — even if the backend or team ever went dark — uses a structure called a <b>Merkle tree</b>: take every trader's balance, hash them together in pairs, over and over, until it collapses into one 32-byte fingerprint (the "root"). Post just that single root on-chain — cheap, one number, no matter how many traders there are. To actually withdraw, a trader submits their own balance plus a short "proof" (a handful of the intermediate hashes from the tree) that lets the contract recompute the root on the spot and check it matches what was posted. If it matches, that balance is provably part of the committed set, and the contract pays out — with no backend involved at claim time.</p>
+      <p>Building and serving those proofs is genuinely useful, but it's also real engineering effort for a property (withdraw even if the team disappears) that matters much less over a short, team-run competition with a manually-paid prize. So for this accelerated plan, withdrawals are <b>admin-triggered</b> instead: the team processes them directly against the database's numbers, no tree or proof required. This is the single highest-priority item to add back before any longer-lived or higher-stakes version of this product — it's what removes the team as a dependency for someone getting their own money out.</p>
+    </div>
+
+    <div class="explainer backend-tone">
+      <span class="term">Faucet &amp; leaderboard</span>
+      <p>The <b>faucet</b> is a rate-limited endpoint that mints free test collateral to anyone who asks — since this is a competition, "trading" happens with play money, not real funds. The <b>leaderboard</b> is a simple read-only ranking of every participant's current equity (locked margin plus already-earned balance), read straight from the database — it doesn't need any on-chain source of truth, since the real prize is paid out manually by the team after inspecting the numbers.</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Task</th><th>Week</th><th>Hrs</th></tr></thead>
+        <tbody>
+          <tr><td>Postgres schema + migrations (positions, funding epochs, ledger, LP pool, signed intents)</td><td class="wk">W1</td><td class="hrs">6</td></tr>
+          <tr><td>Index price + realized-volatility (EWMA) feed <i>(simple calc, not fully tuned — cut)</i></td><td class="wk">W1</td><td class="hrs">8</td></tr>
+          <tr><td>Faucet service</td><td class="wk">W1</td><td class="hrs">5</td></tr>
+          <tr><td>Pricing/accrual tick engine — geometry, position-time clock, accrual/drain, carry-forward settlement <i>(kept near-full — correctness-critical)</i></td><td class="wk">W1–2</td><td class="hrs">28</td></tr>
+          <tr><td>Fee-table ingestion (loads the governance table's numbers) + admin update endpoint</td><td class="wk">W2</td><td class="hrs">6</td></tr>
+          <tr><td>Intent executor — validate, price, countersign Quote, submit tx, sync</td><td class="wk">W2–3</td><td class="hrs">20</td></tr>
+          <tr><td>Admin-triggered withdrawal service <i>(no Merkle tree — cut, see explainer above)</i></td><td class="wk">W3</td><td class="hrs">3</td></tr>
+          <tr><td>Leaderboard + market/pool read APIs</td><td class="wk">W3</td><td class="hrs">8</td></tr>
+          <tr><td>Admin/ops tooling — competition freeze switch only <i>(dashboard cut)</i></td><td class="wk">W3</td><td class="hrs">5</td></tr>
+          <tr><td>Testing <i>(smoke tests + tick-engine correctness — depth reduced elsewhere)</i></td><td class="wk">W3</td><td class="hrs">12</td></tr>
+          <tr><td>Infra/deploy — hosting, tick scheduler, secrets management</td><td class="wk">W3</td><td class="hrs">6</td></tr>
+        </tbody>
+        <tfoot><tr><td>Total</td><td></td><td class="hrs">107</td></tr></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ FRONTEND ============ -->
+  <section>
+    <div class="track-head">
+      <span class="swatch frontend"></span><h2>Track C — Frontend</h2>
+      <span class="track-total">owner <b>FrontendDevX</b> <span class="placeholder-tag">placeholder</span> · <b class="mono">55 hrs</b> (was 84) @ ~18 hr/wk</span>
+    </div>
+    <div class="prose">
+      <p>This is the only piece a competition participant ever directly touches. Its job is to make the user's journey (above) feel like a normal web app: connect a wallet, fill out a form, sign a message when asked, and see where you stand — while every actual decision (pricing, verification, execution) happens in the backend and contracts behind it.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Task</th><th>Week</th><th>Hrs</th></tr></thead>
+        <tbody>
+          <tr><td>Faucet-claim UI</td><td class="wk">W1</td><td class="hrs">3</td></tr>
+          <tr><td>Wallet connect + EIP-712 signing flow (Open/Close/TopUp only — no Re-center/Re-anchor)</td><td class="wk">W1</td><td class="hrs">10</td></tr>
+          <tr><td>Open-position flow (seat, leverage, committed amount, live fee quote)</td><td class="wk">W1–2</td><td class="hrs">12</td></tr>
+          <tr><td>Position dashboard — list of open positions with live PnL numbers <i>(geometry chart cut)</i></td><td class="wk">W2</td><td class="hrs">8</td></tr>
+          <tr><td>Leaderboard page</td><td class="wk">W2–3</td><td class="hrs">5</td></tr>
+          <tr><td>Close / top-up actions UI <i>(Re-center/Re-anchor deferred — cut)</i></td><td class="wk">W3</td><td class="hrs">6</td></tr>
+          <tr><td>Withdrawal-request UI <i>(flags the admin queue — no proof serving, no self-serve claim)</i></td><td class="wk">W3</td><td class="hrs">3</td></tr>
+          <tr><td>Market/pool info display (per-rung fee table, pool NAV, admission headroom)</td><td class="wk">W3</td><td class="hrs">4</td></tr>
+          <tr><td>Testnet-grade polish (error states, basic responsive layout)</td><td class="wk">W3</td><td class="hrs">4</td></tr>
+        </tbody>
+        <tfoot><tr><td>Total</td><td></td><td class="hrs">55</td></tr></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- SCHEDULE -->
+  <section>
+    <h2>Schedule</h2>
+    <p class="lede" style="margin-top:6px;margin-bottom:16px;">Three dev weeks, then a two-day buffer for bug-bash and dry run — contracts fits comfortably inside Steve's normal hours, so the buffer exists for Leifu and FrontendDevX, not for him.</p>
+    <div class="gantt-wrap">
+      <div class="gantt">
+        <div class="gantt-weeks">
+          <div></div>
+          <div>W1<br>9/9–9/15</div><div>W2<br>9/16–9/22</div><div>W3<br>9/23–9/29</div><div>Buffer<br>9/30–10/1</div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label">Contracts</div>
+          <div class="gantt-track"><div class="bar contracts" style="left:0%;width:100%;">Vault → Settlement → fee table → tests → deploy (+ ongoing integration/security w/ Leifu)</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label">Backend</div>
+          <div class="gantt-track"><div class="bar backend" style="left:0%;width:75%;">Schema, oracle, tick engine, executor</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label"></div>
+          <div class="gantt-track"><div class="bar backend" style="left:75%;width:25%;">APIs, admin tooling, testing, infra</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label">Frontend</div>
+          <div class="gantt-track"><div class="bar frontend" style="left:0%;width:50%;">Wallet, faucet, open flow</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label"></div>
+          <div class="gantt-track"><div class="bar frontend" style="left:50%;width:75%;">Dashboard, leaderboard, close/top-up, withdraw, polish</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label">Shared</div>
+          <div class="gantt-track"><div class="bar buffer" style="left:75%;width:25%;">Bug-bash + dry run</div></div>
+        </div>
+      </div>
+      <div class="gantt-legend">
+        <span><i style="background:var(--accent);"></i>Contracts — Steve</span>
+        <span><i style="background:var(--accent-2);"></i>Backend — Leifu</span>
+        <span><i style="background:var(--accent-3);"></i>Frontend — FrontendDevX</span>
+        <span><i style="background:var(--muted);opacity:.55;"></i>Shared buffer</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="two-col">
+    <div>
+      <h2>Milestones</h2>
+      <ul class="milestones" style="margin-top:16px;">
+        <li><span class="date">Thu Sep 11, 2026</span><span class="what">EIP-712 intent structs + fee-table field names frozen. FrontendDevX needs to be a real, named person by this point — frontend work starts immediately, not after contracts.</span></li>
+        <li><span class="date">Tue Sep 15 (end W1)</span><span class="what">Vault done; tick engine underway; wallet-connect + faucet UI done.</span></li>
+        <li><span class="date">Tue Sep 22 (end W2)</span><span class="what">Settlement + fee table + admin-withdraw done; tick engine + intent executor near-complete; open-flow + dashboard done — first internal open/close cycle on testnet.</span></li>
+        <li><span class="date">Tue Sep 29 (end W3)</span><span class="what">All three tracks feature-complete for this scope: open → accrue → fund → close → admin withdraw, working end to end.</span></li>
+        <li><span class="date">Thu Oct 1, 2026</span><span class="what"><b>Target:</b> bug-bash and dry run done, ready to open to participants.</span></li>
+      </ul>
+    </div>
+    <div>
+      <div class="callout">
+        <h3>Watch these two</h3>
+        <ul>
+          <li><b>Leifu's ~35 hr/wk is 1.75× his normal load</b> for three straight weeks, and he's now the only backend hand — if that slips, backend becomes the new bottleneck since the tick engine (28h, kept near-full deliberately) can't be compressed further without risking correctness.</li>
+          <li><b>FrontendDevX is unstaffed as of this doc.</b> Frontend work starts in Week 1 alongside contracts and backend, not after — an empty seat here doesn't just delay frontend, it slips Oct 1 outright.</li>
+        </ul>
+        <p class="lede" style="margin-top:12px;margin-bottom:0;font-size:0.84rem;">Contracts is no longer a schedule risk: 31 itemized hours fits inside Steve's normal 10 hr/wk cap over three weeks (30 hrs) with roughly a 1-hour margin — Oct 1 now lives or dies on backend and frontend.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="cut-box">
+      <h3>Deferred to a post-launch hardening pass — not solved by this plan</h3>
+      <div class="table-wrap" style="margin-top:10px;">
+        <table>
+          <thead><tr><th>Cut</th><th>What it costs during the competition</th></tr></thead>
+          <tbody>
+            <tr><td>Self-serve Merkle withdrawal</td><td>Withdrawals are admin-processed, not trustless/self-serve — fine for a short, team-run competition; add back before any longer-lived or trust-minimized deployment. Full explanation of how it works is in Track B above.</td></tr>
+            <tr><td>Re-center / Re-anchor actions</td><td>Traders can't reposition a Long/Short/Range without closing and reopening — a real UX loss, acceptable for a first competition run.</td></tr>
+            <tr><td>Only 2 of 4 leverage rungs (25×, 100×)</td><td>5× and 500× are config-only additions later — the governance table is designed for this — but they won't be live at launch.</td></tr>
+            <tr><td>Reduced test/security depth</td><td>Testnet stakes only, manual prize payout — the source doc's own reasoning for not needing a full audit. Revisit before extending stakes or scope.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Supersedes the base-case plan for launch purposes. See <a href="yield-perp-build-plan.html" style="color:var(--accent);">yield-perp-build-plan.html</a> for the original ~14-week, full-scope schedule, kept as a reference ("Plan B") if capacity or scope needs to revert.
+  </footer>
+
+</div>

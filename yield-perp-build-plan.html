@@ -1,0 +1,484 @@
+<title>Yield Perp Testnet Build Plan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#f3f2ed;
+    --surface:#ffffff;
+    --surface-2:#eae7de;
+    --ink:#1b2430;
+    --muted:#5b6472;
+    --border:#d8d4c8;
+    --accent:#0f6e5c;      /* contracts */
+    --accent-soft:#e3ede9;
+    --accent-2:#33517a;    /* backend */
+    --accent-2-soft:#e6eaf1;
+    --accent-3:#7a4e76;    /* frontend */
+    --accent-3-soft:#f0e6ee;
+    --flag:#9c6b14;
+    --flag-bg:#f4e6c6;
+    --flag-border:#dcc386;
+    --today:#c23b3b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#11161c;
+      --surface:#1a2129;
+      --surface-2:#212a32;
+      --ink:#eae7dd;
+      --muted:#9aa3ac;
+      --border:#333c44;
+      --accent:#35b79b;
+      --accent-soft:#173029;
+      --accent-2:#84a4d9;
+      --accent-2-soft:#1a2536;
+      --accent-3:#cf98c6;
+      --accent-3-soft:#2c1f2a;
+      --flag:#e2b263;
+      --flag-bg:#332711;
+      --flag-border:#4d3c1a;
+      --today:#e2685f;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#11161c;
+    --surface:#1a2129;
+    --surface-2:#212a32;
+    --ink:#eae7dd;
+    --muted:#9aa3ac;
+    --border:#333c44;
+    --accent:#35b79b;
+    --accent-soft:#173029;
+    --accent-2:#84a4d9;
+    --accent-2-soft:#1a2536;
+    --accent-3:#cf98c6;
+    --accent-3-soft:#2c1f2a;
+    --flag:#e2b263;
+    --flag-bg:#332711;
+    --flag-border:#4d3c1a;
+    --today:#e2685f;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    line-height:1.5;
+  }
+  .page{max-width:980px;margin:0 auto;padding:44px 24px 80px;}
+  .wide{max-width:1180px;}
+
+  h1,h2,h3{font-family:'Newsreader', Georgia, serif;text-wrap:balance;font-weight:600;color:var(--ink);}
+  h1{font-size:2.15rem;margin:0 0 6px;letter-spacing:-0.01em;}
+  h2{font-size:1.3rem;margin:0 0 4px;}
+  h3{font-size:1.02rem;margin:0;font-weight:600;}
+
+  .mono{font-family:'IBM Plex Mono', ui-monospace, monospace;font-variant-numeric:tabular-nums;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    text-transform:uppercase;
+    letter-spacing:0.09em;
+    font-size:0.72rem;
+    color:var(--muted);
+  }
+  .lede{color:var(--muted);font-size:0.98rem;max-width:62ch;margin:10px 0 0;}
+
+  header.hero{
+    border-bottom:1px solid var(--border);
+    padding-bottom:26px;
+    margin-bottom:28px;
+  }
+
+  /* capacity strip */
+  .super-note{
+    display:flex;gap:10px;align-items:flex-start;
+    background:var(--flag-bg);border:1px solid var(--flag-border);border-radius:4px;
+    padding:12px 15px;margin-bottom:22px;font-size:0.86rem;color:var(--ink);
+  }
+  .super-note b{color:var(--flag);}
+  .super-note a{color:var(--accent);font-weight:600;}
+
+  .capstrip{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(190px,1fr));
+    gap:1px;
+    background:var(--border);
+    border:1px solid var(--border);
+    margin-top:22px;
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .cap-cell{background:var(--surface);padding:14px 16px;}
+  .cap-cell .k{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+  .cap-cell .v{font-family:'IBM Plex Mono',monospace;font-size:1.25rem;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums;}
+  .cap-cell .v small{font-size:0.62em;color:var(--muted);font-weight:400;}
+  .cap-cell.contracts .v{color:var(--accent);}
+  .cap-cell.backend .v{color:var(--accent-2);}
+
+  section{margin:44px 0;}
+  section.tight{margin:30px 0;}
+
+  .track-head{
+    display:flex;align-items:baseline;gap:10px;margin-bottom:12px;
+  }
+  .swatch{width:11px;height:11px;border-radius:2px;flex:none;}
+  .swatch.contracts{background:var(--accent);}
+  .swatch.backend{background:var(--accent-2);}
+  .swatch.frontend{background:var(--accent-3);}
+  .track-total{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:0.85rem;color:var(--muted);}
+  .track-total b{color:var(--ink);}
+
+  table{width:100%;border-collapse:collapse;font-size:0.88rem;}
+  .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:4px;}
+  th,td{padding:9px 14px;text-align:left;border-bottom:1px solid var(--border);}
+  thead th{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.68rem;text-transform:uppercase;letter-spacing:0.06em;
+    color:var(--muted);background:var(--surface-2);
+    border-bottom:1px solid var(--border);
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:nth-child(even){background:color-mix(in srgb, var(--surface-2) 35%, transparent);}
+  td.hrs{font-family:'IBM Plex Mono',monospace;text-align:right;white-space:nowrap;}
+  td.dep{color:var(--muted);font-size:0.82rem;}
+  tfoot td{font-weight:600;font-family:'IBM Plex Mono',monospace;background:var(--surface-2);border-top:1px solid var(--border);}
+  tfoot td.hrs{text-align:right;}
+
+  /* Gantt */
+  .gantt-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:4px;background:var(--surface);}
+  .gantt{min-width:920px;padding:16px 18px 18px;}
+  .gantt-weeks{
+    display:grid;
+    grid-template-columns:150px repeat(15, 1fr);
+    font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--muted);
+    margin-bottom:6px;
+  }
+  .gantt-weeks div{padding:2px 3px;text-align:center;border-left:1px solid var(--border);}
+  .gantt-weeks div:first-child{border-left:none;}
+  .gantt-row{
+    display:grid;
+    grid-template-columns:150px repeat(15, 1fr);
+    align-items:center;
+    min-height:30px;
+    position:relative;
+  }
+  .gantt-row + .gantt-row{border-top:1px dashed var(--border);}
+  .gantt-label{
+    font-family:'IBM Plex Mono',monospace;font-size:0.74rem;color:var(--muted);
+    padding-right:8px;
+  }
+  .gantt-track{grid-column:2 / span 15;position:relative;height:20px;}
+  .bar{
+    position:absolute;top:0;height:20px;border-radius:3px;
+    font-family:'IBM Plex Mono',monospace;font-size:0.62rem;
+    display:flex;align-items:center;padding:0 7px;color:#fff;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    opacity:0.95;
+  }
+  .bar.contracts{background:var(--accent);}
+  .bar.backend{background:var(--accent-2);}
+  .bar.frontend{background:var(--accent-3);}
+  .bar.buffer{background:var(--muted);opacity:0.55;}
+  .today-line{
+    position:absolute;top:-4px;bottom:-4px;left:calc((100% / 15) * 0 + 1px);
+    width:2px;background:var(--today);
+  }
+  .today-label{
+    position:absolute;top:-18px;left:2px;font-family:'IBM Plex Mono',monospace;
+    font-size:0.6rem;color:var(--today);white-space:nowrap;
+  }
+  .gantt-legend{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap;font-size:0.76rem;color:var(--muted);}
+  .gantt-legend span{display:inline-flex;align-items:center;gap:6px;}
+  .gantt-legend i{width:10px;height:10px;border-radius:2px;display:inline-block;}
+
+  /* milestones */
+  .milestones{list-style:none;margin:0;padding:0;border-left:2px solid var(--border);}
+  .milestones li{position:relative;padding:2px 0 18px 22px;}
+  .milestones li::before{
+    content:'';position:absolute;left:-6.5px;top:5px;width:11px;height:11px;
+    border-radius:50%;background:var(--surface);border:2px solid var(--accent);
+  }
+  .milestones .date{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--accent);display:block;}
+  .milestones .what{font-size:0.92rem;margin-top:1px;}
+
+  .callout{
+    border:1px solid var(--flag-border);
+    background:var(--flag-bg);
+    border-radius:4px;
+    padding:16px 18px;
+  }
+  .callout h3{color:var(--flag);font-size:0.92rem;text-transform:uppercase;letter-spacing:0.04em;font-family:'IBM Plex Mono',monospace;margin-bottom:10px;}
+  .callout ul{margin:0;padding-left:18px;}
+  .callout li{margin-bottom:8px;font-size:0.88rem;}
+  .callout li:last-child{margin-bottom:0;}
+  .callout b{color:var(--ink);}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  @media (max-width:720px){.two-col{grid-template-columns:1fr;}}
+
+  .scope-list{margin:0;padding-left:18px;font-size:0.9rem;}
+  .scope-list li{margin-bottom:7px;}
+  .scope-list li b{color:var(--ink);}
+
+  footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:0.78rem;}
+</style>
+
+<div class="page">
+
+  <div class="super-note">
+    <span>📌</span>
+    <span><b>Historical reference — Plan B.</b> This is the original full-scope, base-hours schedule (~14 weeks, mid-Dec finish). It's superseded for launch purposes by the <a href="yield-perp-build-plan-accelerated.html">accelerated plan targeting Oct 1</a>, which trims scope and raises everyone's hours. Kept here in case capacity or scope needs to revert to this version.</span>
+  </div>
+
+  <header class="hero">
+    <div class="eyebrow">Cardinal Protocol · Yield Perp · Testnet v1</div>
+    <h1>Build Plan &amp; Schedule</h1>
+    <p class="lede">Effort estimates, sequencing, and a week-by-week schedule for the testnet competition build described in the build plan and Model&nbsp;v1.2 quoting-engine docs. Starts <b>Wed Sep 9, 2026</b>.</p>
+
+    <div class="capstrip">
+      <div class="cap-cell contracts">
+        <div class="k">Contracts — Steve</div>
+        <div class="v">5–10 <small>hr/wk</small></div>
+      </div>
+      <div class="cap-cell backend">
+        <div class="k">Backend + Frontend — Leifu</div>
+        <div class="v">20 <small>hr/wk</small></div>
+      </div>
+      <div class="cap-cell">
+        <div class="k">Total scoped effort</div>
+        <div class="v">324 <small>hrs</small></div>
+      </div>
+      <div class="cap-cell">
+        <div class="k">Base-case finish</div>
+        <div class="v">~14 <small>wks · mid-Dec '26</small></div>
+      </div>
+    </div>
+  </header>
+
+  <section class="tight">
+    <h2>Scope, in one breath</h2>
+    <p class="lede" style="margin-top:8px;">
+      Ship <span class="mono">YieldPerpVault</span> + <span class="mono">YieldPerpSettlement</span>,
+      the off-chain pricing/accrual/funding engine, and a competition trading UI — all against
+      a governance fee table (<span class="mono">baseSpreadBps / hedgeCostBps / riskLoadBps</span>,
+      per leverage rung) that admins can update live.
+    </p>
+    <div class="two-col" style="margin-top:16px;">
+      <ul class="scope-list">
+        <li><b>Treated as an external input, not built here:</b> Andrew/Re7's Model v1.2 quoting engine and its <span class="mono">INTERFACE-fee-table-v1.md</span> output — already walk-forward validated (gates 1–2 passed, 2026-09-02). Our job is to ingest and admin-update that table, not re-derive it.</li>
+        <li><b>Carried over as cut, unchanged:</b> hedge-routing tiers, generated coefficient tables, ≥1000× rungs, multisig operator, fraud proofs, LP withdrawal cooldown. Same reasoning as the source doc's cut-list — testnet stakes, manual prize payout.</li>
+      </ul>
+      <ul class="scope-list">
+        <li><b>New since the last iteration:</b> the funding-fee model adopts Model v1.2's <i>carry-forward settlement</i> (one <span class="mono">epochQuantum</span> per boundary, remainder carried) and <i>entry-crossing-once</i> rule — the fix for the "chunky funding charge" complaint.</li>
+        <li><b>Frontend framing:</b> a real trading UI (open/close/top-up/re-center, dashboard, leaderboard, faucet) sized for a testnet competition, not production polish — no cross-device/accessibility hardening pass.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- CONTRACTS -->
+  <section>
+    <div class="track-head">
+      <span class="swatch contracts"></span><h2>Track A — Contracts</h2>
+      <span class="track-total">owner <b>Steve</b> · <b class="mono">90 hrs</b> @ 5–10 hr/wk</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Task</th><th>Depends on</th><th>Hrs</th></tr></thead>
+        <tbody>
+          <tr><td>Repo scaffold + <span class="mono">YieldPerpVault</span> (Solady ERC4626, NAV/freeNAV cap, satellite hook)</td><td class="dep">EIP-712 struct freeze (Wk1)</td><td class="hrs">12</td></tr>
+          <tr><td><span class="mono">YieldPerpSettlement</span> — position struct + EIP-712 intent &amp; operator-quote verification</td><td class="dep">Vault interface</td><td class="hrs">16</td></tr>
+          <tr><td>On-chain governance fee-table storage + admin setter/versioning</td><td class="dep">Fee-table schema (Wk1, joint)</td><td class="hrs">6</td></tr>
+          <tr><td>Merkle withdrawal-claim verification (root storage, leaf/proof, self-serve claim)</td><td class="dep">Settlement core</td><td class="hrs">8</td></tr>
+          <tr><td>Admin ops: admission-cap check, pause, admin close-out, operator key mgmt</td><td class="dep">Settlement core</td><td class="hrs">8</td></tr>
+          <tr><td>Foundry unit tests (Vault, Settlement, fee table, Merkle claims)</td><td class="dep">All contracts above</td><td class="hrs">16</td></tr>
+          <tr><td>Testnet deploy scripts + <span class="mono">setSatellite</span> wiring + seed LP + register operator</td><td class="dep">Unit tests green</td><td class="hrs">6</td></tr>
+          <tr><td>Contract ↔ backend integration testing (signature formats, e2e open/close)</td><td class="dep">Backend Intent Executor</td><td class="hrs">10</td></tr>
+          <tr><td>Self security-review pass + fixes (not a full audit)</td><td class="dep">Integration testing</td><td class="hrs">8</td></tr>
+        </tbody>
+        <tfoot><tr><td>Total</td><td></td><td class="hrs">90</td></tr></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- BACKEND -->
+  <section>
+    <div class="track-head">
+      <span class="swatch backend"></span><h2>Track B — Backend</h2>
+      <span class="track-total">owner <b>Leifu</b> · <b class="mono">150 hrs</b> @ 20 hr/wk</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Task</th><th>Depends on</th><th>Hrs</th></tr></thead>
+        <tbody>
+          <tr><td>Postgres schema + migrations (positions, funding_epochs, ledger, lp_pool, signed_intents)</td><td class="dep">—</td><td class="hrs">8</td></tr>
+          <tr><td>Pricing/accrual tick engine — geometry, position-time clock (<span class="mono">volatilityReRate</span>), accrual/drain, carry-forward epoch settlement</td><td class="dep">Schema</td><td class="hrs">32</td></tr>
+          <tr><td>Fee-table ingestion (parse <span class="mono">INTERFACE-fee-table-v1.md</span>) + admin update endpoint + versioning</td><td class="dep">Fee-table schema (joint)</td><td class="hrs">8</td></tr>
+          <tr><td>Intent executor — validate, price via <span class="mono">feeBps</span>, countersign Quote, submit tx, sync</td><td class="dep">Tick engine, EIP-712 freeze</td><td class="hrs">24</td></tr>
+          <tr><td>Withdrawal / Merkle service (build tree, serve proofs, submit claim tx)</td><td class="dep">Tick engine (settledBalance)</td><td class="hrs">12</td></tr>
+          <tr><td>Faucet service (mint test collateral, per-address rate limit)</td><td class="dep">Schema</td><td class="hrs">6</td></tr>
+          <tr><td>Leaderboard + market/pool read APIs</td><td class="dep">Tick engine</td><td class="hrs">10</td></tr>
+          <tr><td>Admin/ops tooling — competition freeze, admin close-out trigger, parked-position monitor, admission dashboard</td><td class="dep">Intent executor</td><td class="hrs">10</td></tr>
+          <tr><td>Index price + realized-volatility (EWMA) oracle feed</td><td class="dep">—</td><td class="hrs">12</td></tr>
+          <tr><td>Testing — tick-engine correctness (critical path) + integration</td><td class="dep">Tick engine, intent executor</td><td class="hrs">20</td></tr>
+          <tr><td>Infra/deploy — hosting, tick scheduler, secrets, DB hosting</td><td class="dep">All services</td><td class="hrs">8</td></tr>
+        </tbody>
+        <tfoot><tr><td>Total</td><td></td><td class="hrs">150</td></tr></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- FRONTEND -->
+  <section>
+    <div class="track-head">
+      <span class="swatch frontend"></span><h2>Track C — Frontend</h2>
+      <span class="track-total">owner <b>Leifu</b> (after backend) · <b class="mono">84 hrs</b> @ 20 hr/wk</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Task</th><th>Depends on</th><th>Hrs</th></tr></thead>
+        <tbody>
+          <tr><td>Wallet connect + EIP-712 signing flow (Open/Close/TopUp/ReCenter/ReAnchor)</td><td class="dep">EIP-712 freeze, testnet deploy</td><td class="hrs">12</td></tr>
+          <tr><td>Open-position flow (seat, leverage, committed amount, live fee quote)</td><td class="dep">/intents, /market APIs</td><td class="hrs">14</td></tr>
+          <tr><td>Position dashboard (open positions, live PnL, band/line geometry chart)</td><td class="dep">/position/:id API</td><td class="hrs">18</td></tr>
+          <tr><td>Close / top-up / re-center actions UI</td><td class="dep">Open-position flow</td><td class="hrs">8</td></tr>
+          <tr><td>Withdrawal-claim UI (settledBalance + Merkle proof)</td><td class="dep">Withdrawal service</td><td class="hrs">8</td></tr>
+          <tr><td>Faucet-claim UI</td><td class="dep">Faucet service</td><td class="hrs">4</td></tr>
+          <tr><td>Leaderboard page</td><td class="dep">Leaderboard API</td><td class="hrs">6</td></tr>
+          <tr><td>Market/pool info display (per-rung fee table, NAV, admission headroom)</td><td class="dep">/market, /pool APIs</td><td class="hrs">6</td></tr>
+          <tr><td>Testnet-grade polish (error states, basic responsive, smoke tests)</td><td class="dep">All screens</td><td class="hrs">8</td></tr>
+        </tbody>
+        <tfoot><tr><td>Total</td><td></td><td class="hrs">84</td></tr></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- SCHEDULE -->
+  <section>
+    <h2>Schedule — base case</h2>
+    <p class="lede" style="margin-top:6px;margin-bottom:16px;">Assumes Steve averages 7.5 hr/wk and Leifu holds 20 hr/wk straight through, doing backend first, then frontend. Weeks run Tue–Mon starting <b>Sep 9, 2026</b>.</p>
+
+    <div class="gantt-wrap">
+      <div class="gantt">
+        <div class="gantt-weeks">
+          <div></div>
+          <div>W1<br>9/9</div><div>W2</div><div>W3</div><div>W4</div><div>W5</div>
+          <div>W6</div><div>W7</div><div>W8</div><div>W9</div><div>W10</div>
+          <div>W11</div><div>W12</div><div>W13</div><div>W14<br>12/8</div><div>W15</div>
+        </div>
+
+        <div class="gantt-row">
+          <div class="gantt-label">Contracts</div>
+          <div class="gantt-track">
+            <div class="today-line"></div><div class="today-label">start</div>
+            <div class="bar contracts" style="left:0%;width:26.6%;">Vault + Settlement core</div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label"></div>
+          <div class="gantt-track"><div class="bar contracts" style="left:26.6%;width:20%;">Fee table, Merkle, admin</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label"></div>
+          <div class="gantt-track"><div class="bar contracts" style="left:46.6%;width:20%;">Tests + deploy scripts</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label"></div>
+          <div class="gantt-track"><div class="bar contracts" style="left:66.6%;width:20%;">Integration + security pass</div></div>
+        </div>
+
+        <div class="gantt-row" style="margin-top:10px;">
+          <div class="gantt-label">Backend</div>
+          <div class="gantt-track"><div class="bar backend" style="left:0%;width:17.3%;">Schema, tick engine, oracle</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label"></div>
+          <div class="gantt-track"><div class="bar backend" style="left:17.3%;width:14.6%;">Executor, ingestion, withdraw</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label"></div>
+          <div class="gantt-track"><div class="bar backend" style="left:32%;width:8.6%;">Faucet, leaderboard, admin</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label"></div>
+          <div class="gantt-track"><div class="bar backend" style="left:40.6%;width:9.3%;">Testing + infra</div></div>
+        </div>
+
+        <div class="gantt-row" style="margin-top:10px;">
+          <div class="gantt-label">Frontend</div>
+          <div class="gantt-track"><div class="bar frontend" style="left:53.3%;width:8.6%;">Wallet + open flow</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label"></div>
+          <div class="gantt-track"><div class="bar frontend" style="left:61.9%;width:8.6%;">Dashboard + actions</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label"></div>
+          <div class="gantt-track"><div class="bar frontend" style="left:70.5%;width:8%;">Withdraw, faucet, leaderboard</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label"></div>
+          <div class="gantt-track"><div class="bar frontend" style="left:78.5%;width:2.6%;">Polish</div></div>
+        </div>
+
+        <div class="gantt-row" style="margin-top:10px;">
+          <div class="gantt-label">Shared</div>
+          <div class="gantt-track"><div class="bar buffer" style="left:80%;width:13.3%;">Bug-bash + competition dry run</div></div>
+        </div>
+      </div>
+      <div class="gantt-legend">
+        <span><i style="background:var(--accent);"></i>Contracts — Steve</span>
+        <span><i style="background:var(--accent-2);"></i>Backend — Leifu</span>
+        <span><i style="background:var(--accent-3);"></i>Frontend — Leifu</span>
+        <span><i style="background:var(--muted);opacity:.55;"></i>Shared buffer</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- MILESTONES -->
+  <section class="two-col">
+    <div>
+      <h2>Milestones</h2>
+      <ul class="milestones" style="margin-top:16px;">
+        <li><span class="date">Fri Sep 11, 2026 (end Wk1)</span><span class="what">EIP-712 intent structs, Postgres schema, and fee-table field names frozen jointly.</span></li>
+        <li><span class="date">~Oct 6, 2026 (end Wk4)</span><span class="what">Vault + Settlement core done; backend tick engine + oracle feed done — first internal open/close cycle on a local chain.</span></li>
+        <li><span class="date">~Nov 3, 2026 (end Wk8)</span><span class="what">Contracts feature-complete (fee table, Merkle claims, admin ops); backend feature-complete except polish.</span></li>
+        <li><span class="date">~Nov 10, 2026 (end Wk9)</span><span class="what">Testnet deployment live; frontend wallet-connect + open-flow begins against real contracts.</span></li>
+        <li><span class="date">~Dec 1, 2026 (end Wk12)</span><span class="what">All three tracks feature-complete; full open→accrue→fund→close→withdraw loop working end to end.</span></li>
+        <li><span class="date">Mon Dec 15, 2026 (end Wk15)</span><span class="what"><b>Base-case target:</b> bug-bash complete, competition dry run done, ready to open to participants.</span></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Sensitivity</h2>
+      <p class="lede" style="margin-top:8px;">Contracts is the critical path — it's gated by Steve's 5–10 hr/wk range, not by dependency count.</p>
+      <div class="table-wrap" style="margin-top:14px;">
+        <table>
+          <thead><tr><th>Steve's actual pace</th><th>Contracts duration</th><th>Shifts target to</th></tr></thead>
+          <tbody>
+            <tr><td>10 hr/wk (high end)</td><td class="hrs mono">9 wks</td><td class="hrs mono">~Nov 24 '26</td></tr>
+            <tr><td>7.5 hr/wk (base case)</td><td class="hrs mono">12 wks</td><td class="hrs mono">~Dec 15 '26</td></tr>
+            <tr><td>5 hr/wk (low end)</td><td class="hrs mono">18 wks</td><td class="hrs mono">~Jan 19 '27</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lede" style="margin-top:10px;">Backend + frontend (234 hrs @ 20 hr/wk ≈ 11.7 wks) fit inside even the low-end contracts window, so Leifu is never the bottleneck as scoped.</p>
+    </div>
+  </section>
+
+  <!-- RISKS -->
+  <section>
+    <div class="callout">
+      <h3>Watch these four</h3>
+      <ul>
+        <li><b>Contracts pace is the whole schedule.</b> If Steve's hours slip toward the 5 hr/wk floor, the finish date moves by roughly one week per week of slippage below the 7.5 hr/wk baseline — there's no slack elsewhere to absorb it.</li>
+        <li><b>Frontend has one owner and it's already the busier person.</b> Leifu doing backend then frontend sequentially is what makes 84 hrs of frontend land in the same window as contracts. Splitting frontend to a third person from Wk3 onward would pull the whole project in by ~3–4 weeks instead.</li>
+        <li><b>Two freezes gate everything and both are due Week 1:</b> the EIP-712 intent/Quote structs (Settlement + Intent Executor both build against them) and the fee-table field schema (fee-table storage, ingestion tool, and the admin API all build against it). A change after Wk2 forces rework on both tracks it touches.</li>
+        <li><b>Admin close-out and margin-exhaustion close are still open TODOs</b> in the source doc's Closing section — they need to be added to the signed-intents list and confirmed as contract-accepted before Settlement's intent set is finalized in Wk1–2, or Task A2 gets reopened later.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    Sources: <span class="mono">build-plan-yield-perp-testnet-v1.md</span> and the Model v1.2 quoting-engine one-pager (finalized 2026-09-02). Hours exclude the offline quoting-engine/simulation work itself, treated here as an already-delivered external input.
+  </footer>
+
+</div>
