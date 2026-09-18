@@ -1,0 +1,637 @@
+<title>Yield Perp Accelerated Build Plan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#f3f2ed; --surface:#ffffff; --surface-2:#eae7de; --ink:#1b2430; --muted:#5b6472;
+    --border:#d8d4c8; --accent:#0f6e5c; --accent-soft:#e3ede9; --accent-2:#33517a; --accent-2-soft:#e6eaf1;
+    --accent-3:#7a4e76; --accent-3-soft:#f0e6ee; --flag:#9c6b14; --flag-bg:#f4e6c6; --flag-border:#dcc386;
+    --today:#c23b3b; --cut:#7a2f2f; --cut-bg:#f6e2df; --cut-border:#e0b7ae;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#11161c; --surface:#1a2129; --surface-2:#212a32; --ink:#eae7dd; --muted:#9aa3ac;
+      --border:#333c44; --accent:#35b79b; --accent-soft:#173029; --accent-2:#84a4d9; --accent-2-soft:#1a2536;
+      --accent-3:#cf98c6; --accent-3-soft:#2c1f2a; --flag:#e2b263; --flag-bg:#332711; --flag-border:#4d3c1a;
+      --today:#e2685f; --cut:#e08e83; --cut-bg:#33201d; --cut-border:#5a332d;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#11161c; --surface:#1a2129; --surface-2:#212a32; --ink:#eae7dd; --muted:#9aa3ac;
+    --border:#333c44; --accent:#35b79b; --accent-soft:#173029; --accent-2:#84a4d9; --accent-2-soft:#1a2536;
+    --accent-3:#cf98c6; --accent-3-soft:#2c1f2a; --flag:#e2b263; --flag-bg:#332711; --flag-border:#4d3c1a;
+    --today:#e2685f; --cut:#e08e83; --cut-bg:#33201d; --cut-border:#5a332d;
+  }
+  *{box-sizing:border-box;}
+  body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans', system-ui, sans-serif;line-height:1.6;}
+  .page{max-width:900px;margin:0 auto;padding:44px 24px 80px;}
+  h1,h2,h3,h4{font-family:'Newsreader', Georgia, serif;text-wrap:balance;font-weight:600;color:var(--ink);}
+  h1{font-size:2.1rem;margin:0 0 6px;letter-spacing:-0.01em;}
+  h2{font-size:1.28rem;margin:0 0 4px;}
+  h3{font-size:1.05rem;margin:0;font-weight:600;}
+  h4{font-size:0.92rem;margin:0 0 6px;font-weight:600;font-family:'IBM Plex Sans',sans-serif;}
+  p{margin:0 0 12px;}
+  p:last-child{margin-bottom:0;}
+  .mono{font-family:'IBM Plex Mono', ui-monospace, monospace;font-variant-numeric:tabular-nums;}
+  .eyebrow{font-family:'IBM Plex Mono', monospace;text-transform:uppercase;letter-spacing:0.09em;font-size:0.72rem;color:var(--muted);}
+  .lede{color:var(--muted);font-size:0.98rem;max-width:66ch;margin:10px 0 0;}
+  .prose{max-width:70ch;font-size:0.94rem;}
+  .prose p{margin:0 0 13px;}
+  header.hero{border-bottom:1px solid var(--border);padding-bottom:26px;margin-bottom:24px;}
+
+  .super-note{
+    display:flex;gap:10px;align-items:flex-start;
+    background:var(--accent-soft);border:1px solid var(--accent);border-radius:4px;
+    padding:12px 15px;margin-bottom:24px;font-size:0.86rem;
+  }
+  .super-note b{color:var(--accent);}
+  .super-note a{color:var(--accent);font-weight:600;}
+
+  .capstrip{display:grid;grid-template-columns:repeat(auto-fit, minmax(180px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin-top:20px;border-radius:3px;overflow:hidden;}
+  .cap-cell{background:var(--surface);padding:14px 16px;}
+  .cap-cell .k{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+  .cap-cell .v{font-family:'IBM Plex Mono',monospace;font-size:1.2rem;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums;}
+  .cap-cell .v small{font-size:0.6em;color:var(--muted);font-weight:400;}
+  .cap-cell.contracts .v{color:var(--accent);}
+  .cap-cell.backend .v{color:var(--accent-2);}
+  .cap-cell.frontend .v{color:var(--accent-3);}
+  .cap-cell .delta{font-size:0.7rem;color:var(--flag);margin-top:2px;}
+
+  section{margin:44px 0;}
+  section.tight{margin:28px 0;}
+  .track-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+  .swatch{width:11px;height:11px;border-radius:2px;flex:none;}
+  .swatch.contracts{background:var(--accent);} .swatch.backend{background:var(--accent-2);} .swatch.frontend{background:var(--accent-3);}
+  .track-total{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:0.85rem;color:var(--muted);}
+  .track-total b{color:var(--ink);}
+  .placeholder-tag{
+    font-family:'IBM Plex Mono',monospace;font-size:0.62rem;text-transform:uppercase;letter-spacing:0.05em;
+    background:var(--flag-bg);color:var(--flag);border:1px solid var(--flag-border);border-radius:3px;padding:2px 6px;
+  }
+
+  table{width:100%;border-collapse:collapse;font-size:0.87rem;}
+  .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:4px;}
+  th,td{padding:9px 14px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top;}
+  thead th{font-family:'IBM Plex Mono',monospace;font-size:0.66rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);background:var(--surface-2);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:nth-child(even){background:color-mix(in srgb, var(--surface-2) 35%, transparent);}
+  td.hrs{font-family:'IBM Plex Mono',monospace;text-align:right;white-space:nowrap;}
+  td.wk{font-family:'IBM Plex Mono',monospace;color:var(--muted);font-size:0.8rem;white-space:nowrap;}
+  tfoot td{font-weight:600;font-family:'IBM Plex Mono',monospace;background:var(--surface-2);border-top:1px solid var(--border);}
+  tfoot td.hrs{text-align:right;}
+  .row-note{font-size:0.78rem;color:var(--muted);font-style:italic;margin-top:4px;font-family:'IBM Plex Sans',sans-serif;}
+
+  /* jargon explainer callouts */
+  .explainer{
+    border-left:3px solid var(--accent);
+    background:var(--accent-soft);
+    border-radius:0 4px 4px 0;
+    padding:13px 16px;
+    margin:16px 0;
+    font-size:0.88rem;
+  }
+  .explainer.backend-tone{border-left-color:var(--accent-2);background:var(--accent-2-soft);}
+  .explainer .term{
+    font-family:'IBM Plex Mono',monospace;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;
+    color:var(--accent);display:block;margin-bottom:6px;
+  }
+  .explainer.backend-tone .term{color:var(--accent-2);}
+  .explainer p{margin:0 0 8px;}
+  .explainer p:last-child{margin-bottom:0;}
+
+  /* user journey */
+  .who{
+    display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:0.64rem;text-transform:uppercase;
+    letter-spacing:0.05em;padding:2px 7px;border-radius:3px;white-space:nowrap;
+  }
+  .who.user{background:var(--surface-2);color:var(--ink);}
+  .who.backend{background:var(--accent-2-soft);color:var(--accent-2);}
+  .who.chain{background:var(--accent-soft);color:var(--accent);}
+  td.step{font-family:'IBM Plex Mono',monospace;color:var(--muted);font-size:0.8rem;width:26px;}
+
+  .gantt-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:4px;background:var(--surface);}
+  .gantt{min-width:640px;padding:16px 18px 18px;}
+  .gantt-weeks{display:grid;grid-template-columns:150px repeat(4, 1fr);font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--muted);margin-bottom:6px;}
+  .gantt-weeks div{padding:2px 3px;text-align:center;border-left:1px solid var(--border);}
+  .gantt-weeks div:first-child{border-left:none;}
+  .gantt-row{display:grid;grid-template-columns:150px repeat(4, 1fr);align-items:center;min-height:30px;}
+  .gantt-row + .gantt-row{border-top:1px dashed var(--border);}
+  .gantt-label{font-family:'IBM Plex Mono',monospace;font-size:0.74rem;color:var(--muted);padding-right:8px;}
+  .gantt-track{grid-column:2 / span 4;position:relative;height:20px;}
+  .bar{position:absolute;top:0;height:20px;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:0.62rem;display:flex;align-items:center;padding:0 7px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0.95;}
+  .bar.contracts{background:var(--accent);} .bar.backend{background:var(--accent-2);} .bar.frontend{background:var(--accent-3);} .bar.buffer{background:var(--muted);opacity:0.55;}
+  .gantt-legend{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap;font-size:0.76rem;color:var(--muted);}
+  .gantt-legend span{display:inline-flex;align-items:center;gap:6px;}
+  .gantt-legend i{width:10px;height:10px;border-radius:2px;display:inline-block;}
+
+  .milestones{list-style:none;margin:0;padding:0;border-left:2px solid var(--border);}
+  .milestones li{position:relative;padding:2px 0 18px 22px;}
+  .milestones li::before{content:'';position:absolute;left:-6.5px;top:5px;width:11px;height:11px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);}
+  .milestones .date{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--accent);display:block;}
+  .milestones .what{font-size:0.92rem;margin-top:1px;}
+
+  .callout{border:1px solid var(--flag-border);background:var(--flag-bg);border-radius:4px;padding:16px 18px;}
+  .callout h3{color:var(--flag);font-size:0.9rem;text-transform:uppercase;letter-spacing:0.04em;font-family:'IBM Plex Mono',monospace;margin-bottom:10px;}
+  .callout ul{margin:0;padding-left:18px;}
+  .callout li{margin-bottom:8px;font-size:0.88rem;}
+  .callout li:last-child{margin-bottom:0;}
+  .callout b{color:var(--ink);}
+
+  .cut-box{border:1px solid var(--cut-border);background:var(--cut-bg);border-radius:4px;padding:16px 18px;}
+  .cut-box h3{color:var(--cut);font-size:0.9rem;text-transform:uppercase;letter-spacing:0.04em;font-family:'IBM Plex Mono',monospace;margin-bottom:10px;}
+  .cut-box table{font-size:0.85rem;}
+  .cut-box td, .cut-box th{border-color:var(--cut-border);}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  @media (max-width:720px){.two-col{grid-template-columns:1fr;}}
+
+  .seat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0;}
+  @media (max-width:720px){.seat-grid{grid-template-columns:1fr;}}
+  .seat-card{border:1px solid var(--border);border-radius:4px;padding:13px 15px;background:var(--surface);}
+  .seat-card h4{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;color:var(--muted);margin-bottom:7px;}
+  .seat-card p{font-size:0.86rem;margin:0;}
+
+  footer{margin-top:52px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:0.78rem;}
+
+  .gantt-weeks{grid-template-columns:150px repeat(6, 1fr);}
+  .gantt-row{grid-template-columns:150px repeat(6, 1fr);}
+  .gantt-track{grid-column:2 / span 6;}
+</style>
+
+<div class="page">
+
+  <header class="hero">
+    <div class="eyebrow">Cardinal Protocol · Yield Perp · Testnet · Spec v0.6</div>
+    <h1>Testnet Build Plan</h1>
+
+    <div class="capstrip">
+      <div class="cap-cell contracts">
+        <div class="k">Contracts — Steve</div>
+        <div class="v">38 <small>hrs</small></div>
+        <div class="delta">7.6 hr/wk — inside the 10 hr/wk cap</div>
+      </div>
+      <div class="cap-cell backend">
+        <div class="k">Backend — Leifu</div>
+        <div class="v">173 <small>hrs</small></div>
+        <div class="delta">165 on Leifu if 8 hrs move to ops</div>
+      </div>
+      <div class="cap-cell frontend">
+        <div class="k">Frontend — FrontendDevX</div>
+        <div class="v">72 <small>hrs</small></div>
+        <div class="delta">~18 hr/wk — still unstaffed</div>
+      </div>
+      <div class="cap-cell">
+        <div class="k">Scoped effort</div>
+        <div class="v">283 <small>hrs</small></div>
+        <div class="delta">five weeks + a two-day buffer</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="super-note">
+    <div><b>Note:</b> With capacities of Steve at 10 hr/wk, Leifu at ~35, one frontend hand at ~18, the following can be completed by Thu Oct 22 if work starts on Sept 18. The schedule section sets out the two levers that could pull it back toward Oct 8, and which one is worth taking.</div>
+  </div>
+
+  <!-- ============ WHAT WE'RE BUILDING ============ -->
+  <section>
+    <h2>What we're building</h2>
+    <div class="prose" style="margin-top:12px;">
+      <p>A <b>yield perpetual</b> ("yield perp") is a trading product where, instead of placing a bet and closing it out once for a single win or loss, a trader makes a standing bet about how a price will <i>behave</i> — and gets paid continuously, like interest, for every moment that bet holds up. They keep getting paid until they choose to close, or until they run out of margin.</p>
+      <p>There's no other trader on the other side of that bet. A shared pool of capital from liquidity providers ("LPs") is the permanent counterparty for every position, every trader, all the time. When traders lose, the pool earns; when traders win, the pool pays out of that same shared capital.</p>
+      <p>For this first version, trading happens with faucet-minted play money as part of a time-boxed competition — whoever grows their balance the most by the deadline wins a real prize, paid out manually by the team afterward. That's what lets us skip a lot of the machinery a real-money version would need while keeping the actual trading mechanics real.</p>
+      <p>What the trader is charged is read off a real options market. Derive lists BTC options; for any position we offer, there is a payoff on that venue with the same shape, and a price the venue puts on it. That price, plus one stated markup, is the funding rate. The band a Range position gets is one <b>implied move</b> — the size of price change Derive's quotes say the market expects over that period, which is its at-the-money implied volatility scaled to the period's length. At 40% a year over 4.8 hours, that's about 0.94%. The most a position can pay in a life is that band's half-width, as a percentage of price, multiplied by the position's notional.</p>
+    </div>
+
+    <h3 style="margin-top:22px;margin-bottom:4px;">Three ways to bet ("seats")</h3>
+    <div class="seat-grid">
+      <div class="seat-card">
+        <h4>Range</h4>
+        <p>"Price stays roughly where it is." The trader gets a band around the price they opened at, and earns for every moment price sits inside it — fastest at the centre, tapering to nothing at either edge, nothing at all outside.</p>
+      </div>
+      <div class="seat-card">
+        <h4>Long</h4>
+        <p>"Price goes up, or at least doesn't fall too far too fast." A line starts just below the opening price and climbs at a fixed pace. The trader earns while price stays ahead of that line, at the full rate once it's clear by a full band width.</p>
+      </div>
+      <div class="seat-card">
+        <h4>Short</h4>
+        <p>The mirror of Long: the line starts just above the opening price and falls. The trader earns while price stays below it.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:22px;margin-bottom:4px;">One dial: the rung</h3>
+    <div class="prose">
+      <p>A trader puts up a <b>commitment</b> and picks a <b>rung</b> — the leverage number. The rung is one setting that fixes three things at once, and this is the single biggest thing the frontend has to make legible:</p>
+      <ul style="margin:0 0 13px;padding-left:20px;font-size:0.94rem;">
+        <li>How long a <b>life</b> lasts — one listed day divided by the rung. A day at 1×, 4.8 hours at 5×, 14 minutes at 100×.</li>
+        <li>How wide the <b>band</b> is — one implied move over that life, so it narrows as the rung climbs and the life shortens.</li>
+        <li>How big the position is — <span class="mono">notional = rung × pricingMargin</span>, which is what the pool underwrites out of LP capital.</li>
+      </ul>
+      <p>Higher rung means a shorter, tighter, faster bet — not a bigger loss per dollar. <b>Leverage here is never a loss multiplier.</b> Nothing liquidates, and the most a position can lose in a life is that life's funding. A trader's deposit runs out one life at a time or not at all.</p>
+      <p>Cardinal backtested eight rungs, spanning from 1× through 5000×. We will launch with four: 1×, 5×, 100× and 5000×. They have lifespans of a day, 4.8 hours, fourteen minutes and seventeen seconds respectively. Every rung's key values are calculated from the same logic (life = <span class="mono">listedDaySeconds / rung</span>, band = one implied move over that life, maximum payout from the band and the notional), so adding new rungs is as easy as altering the deployment config.</p>
+      <p>The top rung is a different engineering problem from the rest, and the plan below carries the cost of it. We strive to price everything on recent data, so at most rungs, we enforce that data must be at most 30 seconds stale if we're going to use it to calculate P&amp;L. At seventeen seconds a life, the 5000× rung's positions have shorter lifespans than the 30-second staleness limit other rungs enforce. That means we need to make staleness limits configurable per rung to support them, and we also need to source a performant oracle that can meet 5000×'s staleness needs — likely very small windows, to allow for multiple price updates within the seventeen-second life.</p>
+    </div>
+
+    <h3 style="margin-top:22px;margin-bottom:4px;">Lives: how a position is charged and paid</h3>
+    <div class="prose">
+      <p>A position is bought and paid for one <b>life</b> at a time. At the start of each life the backend reads Derive, prices what that payoff is worth from wherever the price currently stands, adds the rung's markup, and fixes that life's <span class="mono">lifeFunding</span>. That amount is then charged smoothly out of margin across the life, second by second, while payouts accrue in the other direction in proportion to how strongly the condition is holding. At the life's end the next life is priced from the state then and starts immediately.</p>
+      <p><b>The position does not reopen at a boundary.</b> Nothing is settled, no fee is charged, P&amp;L carries straight through, and a Range position keeps the centre it was opened at — only a re-centre moves that. Two things are re-read: the band's <i>width</i>, re-sized to the move the market now expects, and the price of the payoff from whatever state the position is currently in. Those two set the next life's funding, and that is the whole of what changes. A Long or Short position's line keeps advancing across boundaries rather than resetting, since it's paced from the original open.</p>
+      <p>A life is a pricing period, not a term and not a target. Nothing expires, nothing is liquidated, and the condition is free to be true or false for any part of any life. Charging for time rather than for progress is what allows that: there's no threshold to cross, so there's nothing to charge a lump sum at and no reason to re-rate a position mid-life when the market moves.</p>
+      <p>Each life has two key limiters traders should know. The <b>maximum payout</b> is the most a life can pay: the band's half-width as a percentage of price, times the notional — ±2.24% on a typical day at 1×, so $11.04 on a $493 notional. The pool reserves that full amount in cash from LP capital before the life starts. The <b>edge</b> is Cardinal's margin, and it's where the LP return comes from. What isn't chosen is its size: at every rung but 5× it's set equal to what Derive itself charges to trade that payoff. A trader's expected return is negative by exactly that edge, and the product pays when they're right about the next life.</p>
+      <p>There is one margin balance, <span class="mono">cashMargin</span>. Payouts credit it, funding debits it, and the next life is funded out of it — so a trader who is winning keeps running on their own earnings, and there is one number on screen to watch.</p>
+    </div>
+  </section>
+
+  <!-- ============ WHERE THE NUMBERS COME FROM ============ -->
+  <section>
+    <h2>Where the numbers come from</h2>
+    <div class="prose" style="margin-top:12px;">
+      <p>To quote someone a position we have to produce four numbers: the <b>band</b>, the <b>notional</b>, the <b>maximum payout</b> and the <b>funding</b>. Each is built from the one above it, and the table below is the whole derivation. The field names here are the contract between the three tracks and have to be frozen before anyone builds against them.</p>
+    </div>
+
+    <div class="table-wrap" style="margin-top:14px;">
+      <table>
+        <thead><tr><th style="width:150px;">Number</th><th style="width:210px;">How it's built</th><th>Where the inputs come from</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b><span class="mono">lifeSeconds</span></b><div class="row-note">how long a life runs</div></td>
+            <td><span class="mono">listedDaySeconds / rung</span></td>
+            <td><span class="mono">rung</span> is the trader's choice. <span class="mono">listedDaySeconds</span> is 86,400 — Derive's shortest listed expiry, and the base every life divides down from.</td>
+          </tr>
+          <tr>
+            <td><b><span class="mono">bandHalfWidth</span></b><div class="row-note">how far price can move before the position stops earning</div></td>
+            <td>the lower of <span class="mono">impliedVol</span> and <span class="mono">realizedVolGuard</span>, scaled to the life: <span class="mono">× √(lifeSeconds / secondsPerYear)</span></td>
+            <td><span class="mono">impliedVol</span> is <b>read from Derive</b>: the mark volatility of the at-the-money call and put at the nearest expiry with at least a quarter day left. <span class="mono">realizedVolGuard</span> is <b>from our own price feed</b>: how much the market has actually moved over the last life's worth of seconds. Taking the lower of the two means the guard can only ever <i>narrow</i> the band, never widen it.</td>
+          </tr>
+          <tr>
+            <td><b><span class="mono">notional</span></b><div class="row-note">the size the payoff is written on</div></td>
+            <td><span class="mono">rung × pricingMargin</span></td>
+            <td><span class="mono">pricingMargin</span> is what's left of the trader's commitment after the first life's funding and the entry fee. This is the sense in which LP capital makes the position bigger than the deposit.</td>
+          </tr>
+          <tr>
+            <td><b><span class="mono">maxPayout</span></b><div class="row-note">the most a life can pay</div></td>
+            <td><span class="mono">bandHalfWidth × notional</span></td>
+            <td>Both from above. A ±2.24% band on a $493 notional gives $11.04 — which is also exactly what the pool reserves from LP capital before the life starts.</td>
+          </tr>
+          <tr>
+            <td><b><span class="mono">lifeFunding</span></b><div class="row-note">what the trader pays for this life</div></td>
+            <td><span class="mono">expectedShareInCondition × (1 + edge) × maxPayout</span>, capped at <span class="mono">maxPayout</span></td>
+            <td><span class="mono">expectedShareInCondition</span> is the payoff's fair value from the position's current state — what share of the coming life it should expect to spend in condition — read off the option surface table built from <b>Derive's</b> call prices across strikes (see below). <span class="mono">edge</span> is <b>Cardinal's margin</b>, the markup that accrues to LP equity; we don't pick its size, we set it to the larger of <span class="mono">crossing</span> and the rung's published safety floor, which at seven of the eight rungs means the crossing. The cap is why a winning position can never be priced into a loss. For a trader-initiated life (such as the first life, or the first after a position resumption / top-up of a parked position), we increase the <span class="mono">lifeFunding</span> for that life to meet a <span class="mono">priceAgeHurdle</span> — see below.</td>
+          </tr>
+          <tr>
+            <td><b><span class="mono">entryCrossingFee</span></b><div class="row-note">charged once, at open</div></td>
+            <td><span class="mono">crossing × firstLifeFunding</span></td>
+            <td><span class="mono">crossing</span> is what it actually costs to trade an option on <b>Derive</b>, as opposed to what the screen says it's worth: the gap between the printed mark and where trades really go through, measured off the venue's own prints and bucketed by how expensive the option is — about 1.2% for options worth more than 3% of the index, rising to 22.5% for those under 0.2%, since cheap options cross far worse. This is the only fee at open, and it is never charged again: not on a renewal, not on a re-centre.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="explainer">
+      <span class="term">How expectedShareInCondition is read off Derive's prices</span>
+      <p>Derive lists calls at a grid of strikes. The slope of the call price from one strike to the next is the market's own probability that price finishes beyond that strike — <span class="mono">−∂C/∂K</span>, estimated by differencing neighbouring strikes' call prices. That gives, for any level and any listed expiry, the probability the market is pricing that price ends up above it.</p>
+      <p>A Range position's payoff is a tent: full rate at the centre, tapering to zero at either edge. That decomposes into levels, and for each level and each moment through the life, the probability price sits inside is the difference of two of those probabilities. Averaging over the levels and over the life gives <span class="mono">expectedShareInCondition</span> — the share of the coming life the position should expect to spend in condition, priced entirely from what the venue is charging. Long and Short decompose the same way against their advancing line.</p>
+      <p>Two corrections make it usable, and both are load-bearing. Each expiry's smile is made convex in strike before differencing, because a non-convex call curve produces <i>negative</i> probabilities: one shipped table priced a state at −3.2% of maximum payout and let a renewal through free. And because every life is shorter than any listed expiry, total variance is interpolated between the two nearest expiries to reach the life's own horizon. The grid extends three half-widths beyond the band, so a position that has drifted outside is priced from where it actually is rather than at a flat out-of-zone rate.</p>
+    </div>
+
+    <div class="explainer">
+      <span class="term">The price-age hurdle</span>
+      <p>One adjustment sits on top of <span class="mono">lifeFunding</span>, for lives the trader chooses to start — an open, a manual resume, or a top-up that resumes a parked position. Those are priced off whatever index observation is current at that moment, and if it's a few seconds old, someone watching the exchange directly already knows where price went. On a short rung that knowledge is worth most of a maximum payout.</p>
+      <p>So a trader-initiated life carries a surcharge scaled to exactly how stale the price it struck on is: a fresh price costs nothing extra, a price a third of the life old is charged a third of the way toward full price, and anything older than the life itself — or past <span class="mono">maxPriceAgeSeconds</span>, 30 seconds — is refused. Automatic renewals go unhurdled, since their timing is set by the position's own clock and nobody chose it.</p>
+    </div>
+
+    <div class="explainer backend-tone">
+      <span class="term">What a Quote locks in</span>
+      <p>Pricing moves every few seconds, so a trader's signature can't by itself say what terms should execute. The backend co-signs a <b>Quote</b> — its commitment to the exact terms at this instant — and the contract checks both signatures before anything moves. A Quote carries the observation it struck on (<span class="mono">openingPrice</span>, its source timestamp and sequence number, and the resulting price age), the geometry (<span class="mono">rung</span>, <span class="mono">lifeSeconds</span>, <span class="mono">bandHalfWidth</span> and the band's two edges), the money (<span class="mono">pricingMargin</span>, <span class="mono">notional</span>, <span class="mono">maxPayout</span>, <span class="mono">lifeFunding</span> with the hurdle applied, <span class="mono">entryCrossingFee</span>), which version of the per-rung table and the surface table produced them, and an expiry on the Quote itself so a signed set of terms can't be held and executed later.</p>
+      <p>The trader's intent bounds it from the other side with a maximum fee they'll accept, so neither party can quietly move the deal. The contract's last check before executing is that the pool has the free capital to reserve this life's maximum payout.</p>
+    </div>
+  </section>
+
+  <!-- ============ USER JOURNEY ============ -->
+  <section>
+    <h2>The user's actual journey</h2>
+    <p class="lede" style="margin-top:6px;margin-bottom:14px;">Every step is either something the <span class="who user">user</span> does with their wallet, something the <span class="who backend">backend</span> computes and signs, or something that actually happens <span class="who chain">on-chain</span>. Most of a position's life (steps 5–6) touches none of the three — it's just numbers changing in a database.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th style="width:26px;">#</th><th style="width:90px;">Who</th><th>What happens</th></tr></thead>
+        <tbody>
+          <tr><td class="step">1</td><td><span class="who user">User</span></td><td>Connects a wallet, picks a seat (Range/Long/Short), a rung, and a commitment. The desk shows, before they commit: who's on the other side, this life's premium if they're right, what's at risk (the funding, and nothing beyond it), the band, the ceiling labelled as a ceiling, and what a position at this rung actually did over the year of Derive prints.</td></tr>
+          <tr><td class="step">2</td><td><span class="who user">User</span></td><td>Signs an <b>intent</b> with their wallet — a structured, readable message ("Open a 100× Long, $500 committed, max entry fee 40 bps of commitment") saying what they want, and bounding what they'll pay for it. No gas paid yet; this is just a signature.</td></tr>
+          <tr><td class="step">3</td><td><span class="who backend">Backend</span></td><td>Prices the first life off the live Derive surface at this instant, applies the price-age hurdle, checks the pool has the free capital to reserve the maximum payout, co-signs a <b>Quote</b> over those exact terms, and submits one transaction that checks both signatures and executes the open.</td></tr>
+          <tr><td class="step">4</td><td><span class="who chain">Chain</span></td><td>Pulls the commitment into the shared vault, records who opened it and how much margin is locked, and reserves that life's maximum payout against pool equity. One transaction, and the trader pays no gas beyond it.</td></tr>
+          <tr><td class="step">5</td><td><span class="who backend">Backend</span></td><td><i>(Ongoing, every few seconds)</i> Accrues payout and debits funding into a single margin balance, in proportion to how strongly the condition holds. Free, instant, no blockchain involved.</td></tr>
+          <tr><td class="step">6</td><td><span class="who backend">Backend</span></td><td><i>(At each life boundary)</i> Settles to the boundary, re-reads Derive for the new band and the new price of the payoff, fixes the next life's funding, re-reserves its maximum payout, and starts it. If margin can't cover the next life, or if the position has started outside its condition for a day's worth of renewals, it <b>parks</b>: nothing accrues, nothing is charged, and the pool releases its reserve.</td></tr>
+          <tr><td class="step">7</td><td><span class="who user">User</span> → <span class="who backend">Backend</span> → <span class="who chain">Chain</span></td><td>Whenever the trader wants out they sign a close intent and get back <span class="mono">cashMargin</span> less the unpaid rest of the current life. They can also <b>re-centre</b> — close and immediately reopen at the current price, carrying their P&amp;L, paying no crossing — or <b>resume</b> a parked position, which starts a fresh hurdled life priced from wherever things stand.</td></tr>
+          <tr><td class="step">8</td><td><span class="who user">User</span> → <span class="who chain">Chain</span></td><td>Separately, at any time, the trader can pull margin out of the vault. In this plan that step is admin-processed rather than self-serve — see the withdrawal explainer in Track B.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ CONTRACTS ============ -->
+  <section>
+    <div class="track-head">
+      <span class="swatch contracts"></span><h2>Track A — Contracts</h2>
+      <span class="track-total">owner <b>Steve</b> · <b class="mono">38 hrs</b> itemized @ 10 hr/wk</span>
+    </div>
+    <div class="prose">
+      <p>The chain has four jobs and no others. It <b>holds the money</b>; it <b>verifies that both sides agreed</b> to a trade before executing it; it <b>refuses any position the pool can't cover</b>; and it <b>lets us retune the rungs</b> without a redeploy. Pricing, accrual, the surface and the band all stay off-chain, because none of them need a trust anchor and all of them are too expensive to run there.</p>
+      <p>On ops: the admin functions below (pause, close-out, triggered withdrawal) are <span class="mono">onlyOwner</span> Solidity and have to be written by a Solidity dev, so those four hours stay here — but they're cheap and off the critical path. What can move to a technical non-developer is <i>operating</i> them: running the withdrawal queue, hitting the pause, watching the monitor. That's worth doing, because the corresponding backend tooling is eight hours sitting on the one track with no slack — see Track B.</p>
+    </div>
+
+    <div class="explainer">
+      <span class="term">Holding the money — YieldPerpVault</span>
+      <p>One contract holds every trader's margin and all of the LPs' pooled capital, and it's the only one that ever touches tokens. LPs deposit the test collateral and receive a receipt token: deposits mint and withdrawals burn at equity per share, the pool's take accrues to equity, nothing is sliced between LPs.</p>
+      <p>That pattern has a standard interface — <b>ERC-4626</b>, the tokenized vault standard — so wallets and explorers read it without custom code. Solady (already vendored) ships an implementation, so the share math itself is close to free: the cost in this row is the <i>reserve ledger</i> on top of it, which makes capital promised against open lives distinguishable from free capital so withdrawals can only draw on the free part. One configuration decision is load-bearing rather than cosmetic — 4626 vaults have a known first-depositor inflation attack, and Solady's virtual-shares offset has to be set deliberately at deploy rather than left at its default.</p>
+    </div>
+
+    <div class="explainer">
+      <span class="term">Verifying agreement — YieldPerpSettlement, EIP-712 and the Quote</span>
+      <p>A second contract holds the decision logic and none of the money: whose signatures are valid, each position's status (open / parked / closed), and how much margin is locked against it. When funds move it calls back into the Vault through a narrow interface. Splitting them keeps the contract custodying funds simple and unchanging while the logic likely to evolve stays swappable.</p>
+      <p>Authorization runs on <b>EIP-712</b>, which lets the wallet show a labeled message — trader, action, rung, amount, maximum fee, expiry — rather than a raw blob, and produces a signature verifiable against exactly those terms. At execution the contract checks the trader's intent against the backend's <b>Quote</b>: both signatures, that the Quote hasn't expired, and that its fee is inside the bound the trader set. It re-derives no pricing — it has no surface, no chain data and no volatility. Five intent types ship: <b>Open</b>, <b>Close</b>, <b>TopUp</b>, <b>Re-centre</b> and <b>Resume</b>.</p>
+      <p><b>Most of this is not ours to write.</b> Solady's <span class="mono">EIP712</span> and <span class="mono">SignatureCheckerLib</span> give the domain separator, struct hashing and recovery, and the latter handles <b>EIP-1271</b> transparently, so Safe and other smart-contract wallets work without a second code path. Uniswap's <b>Permit2</b> is deployed on the testnets we care about and lets the trader's signature authorize the token pull, removing a separate approval transaction from the open flow. Polymarket's CTF Exchange solves a close analogue of our shape — signed orders, an operator that countersigns and submits, order hashing, nonces, expiry — and its hashing and nonce mixins are worth lifting as a pattern, though not as a drop-in, since it matches two user orders where we match a user intent against an operator Quote. What genuinely remains ours: the five intent structs, the Quote's field set, the cross-check between the intent's bounds and the Quote's terms, replay and expiry protection, and the position's state transitions.</p>
+      <p>The position it tracks is three numbers and a flag: <span class="mono">cashMargin</span>, <span class="mono">unpaidRestOfLife</span> (what a close settles before returning anything), a dormancy count (renewals started outside the condition, which is what triggers a park), and the status.</p>
+    </div>
+
+    <div class="explainer">
+      <span class="term">Refusing what the pool can't cover — the free-capital check</span>
+      <p>The rule that keeps the pool solvent, and the only risk logic that belongs on-chain, because it's the promise LPs rely on. A new life is allowed only if <span class="mono">free</span> stays non-negative once that life's funding, its maximum-payout reserve, the tick's accrued payout and any deposit are each counted exactly once, where <span class="mono">free = equity − (1 − drawdownBound) × peak − exposure</span> and <span class="mono">drawdownBound</span> is a half.</p>
+      <p>Plainly: the pool may never promise so much that paying every open life in full would take equity below half of where it stood at its best point in the trailing day. It runs on every open, renewal, top-up and resume, not just at admission, and a refused renewal parks the position rather than closing it — the life already paid for is honoured in full.</p>
+    </div>
+
+    <div class="explainer">
+      <span class="term">Retuning without a redeploy — the per-rung table</span>
+      <p>Each rung stores a row: its life length, its crossing, its edge floor, its cap on reserved payouts, and its price-age bound — which has to be per rung, since a seventeen-second life can't accept a price the daily rung happily would. An admin-only setter means fees and limits can be retuned as competition data arrives without touching code.</p>
+      <p>What is deliberately <i>not</i> here: the option surface, 360 entries of what a payoff is worth from each state, which is far too large for on-chain storage and lives in the backend behind a strict loader. Two tables, one source of truth each, and every Quote names the version of both that produced it.</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Task</th><th>Delivers</th><th>Week</th><th>Hrs</th></tr></thead>
+        <tbody>
+          <tr><td>Repo scaffold + <span class="mono">YieldPerpVault</span> — reserve ledger and restricted hook over Solady's ERC-4626, with the virtual-shares offset set</td><td>Holding the money</td><td class="wk">W1</td><td class="hrs">5</td></tr>
+          <tr><td><span class="mono">YieldPerpSettlement</span> — position struct, intent/Quote cross-check and the five intent structs, over Solady EIP712/SignatureCheckerLib</td><td>Verifying agreement</td><td class="wk">W1–2</td><td class="hrs">6</td></tr>
+          <tr><td>Per-rung governance table on-chain (life, crossing, edge floor, reserve cap, price-age bound) + admin setter/versioning</td><td>Retuning</td><td class="wk">W2</td><td class="hrs">4</td></tr>
+          <tr>
+            <td>Free-capital authorization: equity / exposure / free, trailing-day rolling peak, <span class="mono">drawdownBound</span>
+              <div class="row-note">Port the two pool reviews' driver cases as the test fixtures rather than writing fresh ones — they are the record of exactly how this check goes wrong.</div>
+            </td>
+            <td>Refusing what the pool can't cover</td><td class="wk">W2–3</td><td class="hrs">6</td>
+          </tr>
+          <tr><td>Admin-triggered withdrawal function <i>(no Merkle proof machinery — cut, explained in Track B)</i></td><td>Ops</td><td class="wk">W3</td><td class="hrs">1</td></tr>
+          <tr><td>Admin ops: pause switch (global and per-rung), admin close-out</td><td>Ops</td><td class="wk">W3</td><td class="hrs">3</td></tr>
+          <tr><td>Foundry unit tests — core paths plus the free-capital invariant <i>(depth reduced — cut)</i></td><td>All four</td><td class="wk">W3–4</td><td class="hrs">11</td></tr>
+          <tr><td>Testnet deploy scripts + wiring + Permit2 + seed LP + register operator key</td><td>All four</td><td class="wk">W5</td><td class="hrs">2</td></tr>
+          <tr>
+            <td>Contract ↔ backend integration testing
+              <div class="row-note">No block of hours — continuous through the sprint via frequent contact with Leifu as each piece lands, not a scheduled task.</div>
+            </td>
+            <td>—</td><td class="wk">ongoing</td><td class="hrs">—</td>
+          </tr>
+          <tr>
+            <td>Security self-review pass
+              <div class="row-note">Same deal — reviewed alongside the core work rather than as a discrete pass at the end.</div>
+            </td>
+            <td>—</td><td class="wk">ongoing</td><td class="hrs">—</td>
+          </tr>
+        </tbody>
+        <tfoot><tr><td>Total (itemized)</td><td></td><td></td><td class="hrs">38</td></tr></tfoot>
+      </table>
+    </div>
+    <p class="lede" style="margin-top:12px;">38 hours over five weeks is 7.6 hr/wk, well inside Steve's normal range. The free-capital check is the only row here that shouldn't be trimmed further — it's the one two independent reviews broke.</p>
+  </section>
+
+  <!-- ============ BACKEND ============ -->
+  <section>
+    <div class="track-head">
+      <span class="swatch backend"></span><h2>Track B — Backend</h2>
+      <span class="track-total">owner <b>Leifu</b> · <b class="mono">173 hrs</b> · 165 on Leifu @ ~35 hr/wk</span>
+    </div>
+    <div class="prose">
+      <p>Backend has to deliver six things: a <b>live read of Derive</b>, a <b>price for any payoff from any state</b>, <b>trustworthy price observations</b>, <b>correct money movement</b> for every open position every few seconds, a <b>live answer to whether the pool can afford the next life</b>, and a <b>bridge from a signed intent to an on-chain transaction</b>. Plus the competition's supporting cast — faucet, leaderboard, withdrawals, ops.</p>
+      <p>Two of these hours-lines can leave this track. The admin-triggered withdrawal service and the ops tooling are eight hours of straightforward CRUD-and-a-button sitting on the only track with no slack; a technical non-developer can own them, and should. Everything else here needs Leifu.</p>
+      <p>Checking every position against the price every few seconds is far too slow and expensive on a blockchain, so Postgres holds the live truth and always-running services keep it correct. The chain only hears about the moments money moves.</p>
+    </div>
+
+    <div class="explainer backend-tone">
+      <span class="term">1 · A live read of Derive — the market-data client</span>
+      <p>Polls the BTC option chain (instruments, expiries, strikes, marks, bids, asks, sizes, the index) and produces the three things everything downstream needs: <span class="mono">impliedVol</span>, by inverting Black on the at-the-money call and put marks at the nearest expiry with at least a quarter day left; <span class="mono">crossing</span> per premium bucket, read off the venue's prints; and the raw chain the surface table is built from.</p>
+      <p>It also owns quote staleness, which is a correctness feature rather than an error path. Three tiers: a quote minutes old is used as-is; an older one falls back to our own volatility forecast with the edge raised to 20%, because a forecast deserves a wider margin than a quote; an older one still stops new lives being priced on that rung, so positions park at renewal rather than being priced off a number nobody trusts.</p>
+    </div>
+
+    <div class="explainer backend-tone">
+      <span class="term">2 · A price from any state — the surface pipeline</span>
+      <p>This computes <span class="mono">expectedShareInCondition</span> from the live chain, by the derivation set out above: fit each listed expiry's smile and make it convex in strike, interpolate total variance between expiries to reach the life's own horizon, difference the call curve for the digitals, then integrate the tent over its levels and over the life. It covers states outside the band too — the grid runs to three half-widths beyond it — so a position that has drifted out is charged what it's worth from where it actually is, falling toward zero with distance, rather than a flat out-of-zone rate.</p>
+      <p>The output is materialized as a table and re-marked on a schedule, and each renewal prices against whichever table is current at that moment. That's a cache of the live surface, not a fixture: nothing here loads a backtest artifact, and the lab scripts exist as a reference implementation to port rather than as a runtime dependency. Validation runs every time a newly computed table is loaded and is not optional — a non-convex call curve produces negative probabilities, which is how one table came to price a state at −3.2% of maximum payout and let a renewal through free. Any value that is negative, non-finite or above the payout bound is refused at load.</p>
+      <p>This is the hardest numerical work in the backend and the estimate assumes the lab scripts are ported rather than rewritten from the spec.</p>
+    </div>
+
+    <div class="explainer backend-tone">
+      <span class="term">3 · Trustworthy observations — the oracle path</span>
+      <p>Every price the engine acts on has to arrive authenticated, sequenced and fresh, with its source timestamp and sequence number from the same accepted observation, since both freshness and fill depend on it. Observations from the future, or older than the last accepted one, are rejected before they can become the price.</p>
+      <p>Freshness bounds are per rung. Thirty seconds is fine for a daily life and useless for a seventeen-second one, which needs several updates inside a single life — so the top rung sets the cadence requirement for the whole feed, and this is the piece most likely to depend on a provider we haven't picked yet.</p>
+    </div>
+
+    <div class="explainer backend-tone">
+      <span class="term">4 · Correct money movement — the tick engine</span>
+      <p>The heart of the product and the least-cut item in this plan. It wakes every few seconds and, for every open position, moves margin by payout earned minus funding paid, then handles life boundaries: price the next life off the surface, fix its funding, get it authorized, start it. It also counts dormancy, parks positions and prices resumes with the hurdle.</p>
+      <p>Its correctness rules are why it can't be compressed. Settlement is <b>chronological</b>: a tick crossing a boundary is split at it — accrue and debit to the boundary, then price, fund and authorize the next life, then accrue into the new one, in that order. Within a life, ticks are walked in sub-steps and time in condition integrated exactly, so one coarse tick and a thousand fine ones agree to within rounding. A gap beyond that rung's price-age bound pauses the clock rather than being accrued through. An engine without these rules leaks: a single delayed tick once paid out $318 for lives nobody had bought.</p>
+    </div>
+
+    <div class="explainer backend-tone">
+      <span class="term">5 · Can the pool afford this? — the balance sheet</span>
+      <p>Keeps <span class="mono">assets</span>, <span class="mono">owed</span>, <span class="mono">equity</span>, <span class="mono">exposure</span> and <span class="mono">free</span> live, plus the reserve per rung, so the contract's free-capital check has something to enforce on every transition.</p>
+      <p>The rolling <span class="mono">peak</span> is the part most likely to be underestimated. It's the highest committed equity over the trailing listed day, held as a window of observations rather than a single high-water mark: expiring one old high has to leave newer lower highs standing, and equity has to be recorded at every committed boundary, including boundaries falling inside a tick. A permanent high-water mark would leave a drawn-down pool unable to reopen for business, which is the failure this design exists to avoid.</p>
+    </div>
+
+    <div class="explainer backend-tone">
+      <span class="term">6 · Signed intent to on-chain transaction — the executor</span>
+      <p>Watches for intents arriving from the frontend, validates them, prices the life against the live surface, applies the price-age hurdle where the trader chose the timing, checks free capital, signs the operator's half of the Quote, and submits the one transaction that executes the action — then syncs the result back to the database. This is the bridge between "someone clicked a button" and "money moved," across all five intent types.</p>
+    </div>
+
+    <div class="explainer backend-tone">
+      <span class="term">The supporting cast — and why self-serve withdrawal is cut</span>
+      <p>The <b>faucet</b> is a rate-limited endpoint minting free test collateral; the <b>leaderboard</b> ranks participants by equity straight from the database, since the prize is paid manually after inspecting the numbers.</p>
+      <p><b>Withdrawals</b> are where the cut is. The trust-minimized way to let someone pull their balance out even if the team went dark uses a <b>Merkle tree</b>: hash every balance together in pairs, repeatedly, until it collapses to one 32-byte root; post just that root on-chain, one number however many traders. To withdraw, a trader submits their balance plus a short proof — a handful of intermediate hashes — letting the contract recompute the root and check it matches. Real engineering, for a property that matters much less over a short team-run competition with a manually-paid prize. Withdrawals stay <b>admin-triggered</b> against the database's numbers, and this is the first thing to add back for any longer-lived version.</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Task</th><th>Delivers</th><th>Week</th><th>Hrs</th></tr></thead>
+        <tbody>
+          <tr><td>Postgres schema + migrations (positions, lives, ledger, LP pool, reserves, signed intents)</td><td>All six</td><td class="wk">W1</td><td class="hrs">7</td></tr>
+          <tr><td>Derive market-data client — chain poll, <span class="mono">impliedVol</span>, <span class="mono">crossing</span> per bucket, quote-age state machine</td><td>1 · Live read of Derive</td><td class="wk">W1–2</td><td class="hrs">16</td></tr>
+          <tr><td>Index price feed + <span class="mono">realizedVolGuard</span> (EWMA at the life's own horizon; narrows the band only, never widens it)</td><td>1 · Live read of Derive</td><td class="wk">W1</td><td class="hrs">6</td></tr>
+          <tr><td>Surface pipeline — convex smile fit per expiry, total-variance interpolation, digital extraction, tent integration over levels and time, grid materialization out to −3 half-widths, strict validation, re-marking, serving <i>(porting the lab scripts)</i></td><td>2 · Price from any state</td><td class="wk">W2–3</td><td class="hrs">20</td></tr>
+          <tr><td>Oracle observation path — authenticated, sequenced observations, per-rung price-age bounds, and a feed cadence inside the 5000× rung's seventeen-second life</td><td>3 · Trustworthy observations</td><td class="wk">W3</td><td class="hrs">8</td></tr>
+          <tr>
+            <td>Tick engine — life pricing and funding, continuous accrual, chronological settlement, exact sub-step integration, observation rules, dormancy/park/resume, price-age hurdle
+              <div class="row-note">Kept near-full deliberately. This is the one component that determines who owes what, and it can't be compressed without risking correctness.</div>
+            </td>
+            <td>4 · Correct money movement</td><td class="wk">W2–3</td><td class="hrs">32</td>
+          </tr>
+          <tr><td>Pool balance sheet — equity/owed/exposure/free, trailing-day rolling peak, per-rung reserves and caps, authorization on every transition</td><td>5 · Can the pool afford this?</td><td class="wk">W3–4</td><td class="hrs">12</td></tr>
+          <tr><td>Pricing-error monitor — priced vs realized share per rung, logged, with a manual pause <i>(automatic floor-raise cut — see cuts table)</i></td><td>5 · Can the pool afford this?</td><td class="wk">W4</td><td class="hrs">3</td></tr>
+          <tr><td>Intent executor — validate, price, countersign the Quote, submit the tx, sync; across all five intent types</td><td>6 · Intent to transaction</td><td class="wk">W4</td><td class="hrs">22</td></tr>
+          <tr><td>Faucet service</td><td>Supporting cast</td><td class="wk">W1</td><td class="hrs">5</td></tr>
+          <tr><td>Admin-triggered withdrawal service <i>(no Merkle tree — cut, see above)</i></td><td>Supporting cast <b>— movable to ops</b></td><td class="wk">W4</td><td class="hrs">3</td></tr>
+          <tr><td>Leaderboard + market/pool read APIs (per-rung table, pool equity, free capital, the year's record per rung)</td><td>Supporting cast</td><td class="wk">W4</td><td class="hrs">8</td></tr>
+          <tr><td>Admin/ops tooling — competition freeze switch and per-rung pause <i>(dashboard cut)</i></td><td>Supporting cast <b>— movable to ops</b></td><td class="wk">W5</td><td class="hrs">5</td></tr>
+          <tr><td>Testing — smoke, tick-engine correctness, balance-sheet invariant <i>(coarse-vs-fine tick equality and the pool drivers are the two that matter)</i></td><td>All six</td><td class="wk">W4–5</td><td class="hrs">18</td></tr>
+          <tr><td>Infra/deploy — hosting, tick scheduler, Derive polling, secrets management, and a tick scheduler that runs fast enough for seventeen-second lives</td><td>All six</td><td class="wk">W5</td><td class="hrs">8</td></tr>
+        </tbody>
+        <tfoot><tr><td>Total</td><td>8 hrs movable to ops → 165 on Leifu</td><td></td><td class="hrs">173</td></tr></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ FRONTEND ============ -->
+  <section>
+    <div class="track-head">
+      <span class="swatch frontend"></span><h2>Track C — Frontend</h2>
+      <span class="track-total">owner <b>FrontendDevX</b> <span class="placeholder-tag">placeholder</span> · <b class="mono">72 hrs</b> @ ~18 hr/wk</span>
+    </div>
+    <div class="prose">
+      <p>The only piece a participant ever directly touches, and it has four jobs: <b>get a wallet connected and an intent signed</b>; <b>make the rung legible</b> before someone commits to it; <b>show a running position honestly</b>; and carry the <b>competition surround</b> — faucet, leaderboard, withdrawal requests, pool info. Every real decision happens behind it.</p>
+    </div>
+
+    <div class="explainer">
+      <span class="term">Getting an intent signed</span>
+      <p>Wallet connect plus EIP-712 signing across the five intent types — Open, Close, TopUp, Re-centre, Resume. The wallet renders the labeled message; the frontend's job is to make sure the terms shown there match what the desk just quoted, and to carry the maximum fee the trader is willing to accept.</p>
+    </div>
+
+    <div class="explainer">
+      <span class="term">Making the rung legible</span>
+      <p>The rung is one control that sets three things at once — the life, the band and the notional — so the dial has to show all three changing together rather than presenting a leverage number. Alongside it, before anyone commits: who's on the other side, this life's premium if they're right, what's at risk (the funding, and nothing beyond it), the ceiling labelled as a ceiling, and what a position at this rung actually did over the year of prints sitting above it. Nothing is presented as a forecast, and a 5000× position says what it is — roughly three quarters of margin staked every seventeen seconds — rather than leading with an annualized number.</p>
+    </div>
+
+    <div class="explainer">
+      <span class="term">Showing a running position honestly — the paying band</span>
+      <p>Worth building properly even though the full geometry chart stays cut. A Range position's earning rate tapers from the centre while its funding runs flat, so part of the technical band is inside the lines but losing money against the funding, which reads as a bug to the person it happens to.</p>
+      <p>So the band shown is the <b>paying</b> band: where earning actually beats this life's funding, so "in band" always means making money. The full width, where earning fades to zero, sits faintly behind it. A richer life makes the paying band stricter, and that should be visible. A two-tone bar with the two numbers does this on its own. The rest of the position view is <span class="mono">cashMargin</span> plus live accrual, the close-now cash on the Close button, the maximum payout reserved, time open, and — if it parked — why, with a Resume.</p>
+      <p>Alongside it, a <b>live price view with the position's band or line overlaid</b>, which the earlier plan cut and which the short rungs make necessary rather than decorative: at fourteen minutes, and certainly at seventeen seconds, a static readout gives someone no way to see what is happening to them. The estimate below assumes the demo repo's chart is ported; from scratch it's closer to fourteen hours than six, so confirming what's reusable there is worth doing before W2.</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Task</th><th>Delivers</th><th>Week</th><th>Hrs</th></tr></thead>
+        <tbody>
+          <tr><td>Wallet connect + EIP-712 signing flow — Open, Close, TopUp, Re-centre, Resume</td><td>Getting an intent signed</td><td class="wk">W1</td><td class="hrs">11</td></tr>
+          <tr><td>Open flow — the rung dial, live Quote for the first life, the seller's two numbers, ceiling with the year's record above it, paying band</td><td>Making the rung legible</td><td class="wk">W2–3</td><td class="hrs">16</td></tr>
+          <tr><td>Position dashboard — <span class="mono">cashMargin</span> plus live accrual, close-now cash, maximum payout reserved, time open, park reason and Resume; fast-refresh and the stake per life at the top rung</td><td>Showing a position honestly</td><td class="wk">W3</td><td class="hrs">12</td></tr>
+          <tr><td>Live price view with the band or line and current position overlaid <i>(assumes the demo repo's chart is ported)</i></td><td>Showing a position honestly</td><td class="wk">W3–4</td><td class="hrs">6</td></tr>
+          <tr><td>Close / Top-up / Re-centre actions UI</td><td>Showing a position honestly</td><td class="wk">W4</td><td class="hrs">8</td></tr>
+          <tr><td>Faucet-claim UI</td><td>Competition surround</td><td class="wk">W1</td><td class="hrs">3</td></tr>
+          <tr><td>Leaderboard page</td><td>Competition surround</td><td class="wk">W3</td><td class="hrs">5</td></tr>
+          <tr><td>Withdrawal-request UI <i>(flags the admin queue — no proof serving, no self-serve claim)</i></td><td>Competition surround</td><td class="wk">W4</td><td class="hrs">3</td></tr>
+          <tr><td>Market/pool info display (per-rung table, pool equity, free capital, which rungs are open)</td><td>Competition surround</td><td class="wk">W5</td><td class="hrs">4</td></tr>
+          <tr><td>Testnet-grade polish (error states, park and stale-quote states, basic responsive layout)</td><td>All four</td><td class="wk">W5</td><td class="hrs">4</td></tr>
+        </tbody>
+        <tfoot><tr><td>Total</td><td></td><td></td><td class="hrs">72</td></tr></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- SCHEDULE -->
+  <section>
+    <h2>Schedule</h2>
+    <p class="lede" style="margin-top:6px;margin-bottom:16px;">Five weeks from a Sep 18 start, then a two-day buffer for bug-bash and dry run.</p>
+    <div class="gantt-wrap">
+      <div class="gantt">
+        <div class="gantt-weeks">
+          <div></div>
+          <div>W1<br>9/18–9/22</div><div>W2<br>9/23–9/29</div><div>W3<br>9/30–10/6</div><div>W4<br>10/7–10/13</div><div>W5<br>10/14–10/20</div><div>Buffer<br>10/21–10/22</div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label">Contracts</div>
+          <div class="gantt-track"><div class="bar contracts" style="left:0%;width:83.3%;">Vault → Settlement → rung table → free-capital check → tests → deploy (+ ongoing integration/security w/ Leifu)</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label">Backend</div>
+          <div class="gantt-track"><div class="bar backend" style="left:0%;width:50%;">Schema, Derive client, surface loader, tick engine</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label"></div>
+          <div class="gantt-track"><div class="bar backend" style="left:50%;width:33.3%;">Balance sheet, executor, APIs, testing, infra</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label">Frontend</div>
+          <div class="gantt-track"><div class="bar frontend" style="left:0%;width:50%;">Wallet, faucet, rung dial, open flow</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label"></div>
+          <div class="gantt-track"><div class="bar frontend" style="left:50%;width:33.3%;">Dashboard, leaderboard, actions, pool info, polish</div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label">Shared</div>
+          <div class="gantt-track"><div class="bar buffer" style="left:83.3%;width:16.7%;">Bug-bash + dry run</div></div>
+        </div>
+      </div>
+      <div class="gantt-legend">
+        <span><i style="background:var(--accent);"></i>Contracts — Steve</span>
+        <span><i style="background:var(--accent-2);"></i>Backend — Leifu</span>
+        <span><i style="background:var(--accent-3);"></i>Frontend — FrontendDevX</span>
+        <span><i style="background:var(--muted);opacity:.55;"></i>Shared buffer</span>
+      </div>
+    </div>
+
+    <h3 style="margin-top:26px;margin-bottom:8px;">Two levers that could pull the date back</h3>
+    <div class="prose">
+      <p>173 backend hours is 4.9 weeks at 35 hr/wk, or 4.7 once the eight ops hours move off Leifu, and the largest single item — the tick engine — can't start in earnest until the Derive client and the surface loader are feeding it. That ordering is what sets Oct 22 rather than anything about the total. Two things could compress it, and they are not equally good.</p>
+      <p><b>Worth taking: re-mark the surface once a day from a snapshot rather than polling Derive continuously.</b> Worth about 12 backend hours — the polling and staleness machinery, not the surface pipeline, which is needed either way. The team refreshes the chain and the day's <span class="mono">impliedVol</span> once a day, which is what every battery behind this model was run against. It's safe rather than a shortcut because of <span class="mono">realizedVolGuard</span>: it can only ever <i>narrow</i> the band, so a frozen quote can't be farmed by waiting for a calm moment, and that attack was tested directly. The quote-age logic still ships — if the snapshot isn't refreshed, new lives stop being priced. One caveat this earns with 5000× on the dial: a day-old <span class="mono">impliedVol</span> sitting behind seventeen-second lives is a longer stretch than it was, and the guard is doing more work than it was asked to do in testing.</p>
+      <p><b>Not worth taking: price from our own volatility forecast instead of the venue.</b> It removes the Derive client, the surface pipeline and their tests — call it 42 hours and well over a week — and the engine already has to carry a forecast path for stale quotes, so the code exists. The problem is what a forecast-priced band is worth. Measured against a year of real Derive prints, our own forecast ran about 40% too wide, which is enough for a bot that opens in calm conditions to beat the pool outright at a zero edge, and the fix was to raise the edge to 20% at every rung — a number chosen to survive the bots rather than read off anything. That's a competition run on prices we made up, against participants whose whole incentive is to find exactly that. If the date genuinely can't move, cut rungs and features instead — ship 1× and 100× only, drop Re-centre, drop the leaderboard to a nightly refresh — and keep the pricing traceable.</p>
+    </div>
+  </section>
+
+  <section class="two-col">
+    <div>
+      <h2>Milestones</h2>
+      <ul class="milestones" style="margin-top:16px;">
+        <li><span class="date">Mon Sep 21</span><span class="what">Field names frozen across all three tracks: the EIP-712 intent set, the Quote's fields, the per-rung table and the surface grid. Also settled by here: what the demo repo's price chart gives us for free, and who owns ops. Frontend can't build the open flow until these are fixed. FrontendDevX needs to be a real, named person by this point — frontend work starts in W1, not after contracts.</span></li>
+        <li><span class="date">Tue Sep 22 (end W1)</span><span class="what">Vault done; Derive client returning <span class="mono">impliedVol</span> and <span class="mono">crossing</span>; wallet-connect and faucet UI done.</span></li>
+        <li><span class="date">Tue Sep 29 (end W2)</span><span class="what">Settlement + per-rung table done; validated surface table loading and serving; tick engine underway; rung dial and open flow underway.</span></li>
+        <li><span class="date">Tue Oct 6 (end W3)</span><span class="what">Tick engine correct: a life prices, funds, accrues, renews, parks and resumes, with coarse and fine ticks agreeing. Free-capital check landed on-chain. First internal open → renew → close cycle on testnet.</span></li>
+        <li><span class="date">Tue Oct 13 (end W4)</span><span class="what">Balance sheet authorizing every transition; intent executor across all five intent types; dashboard showing the seller's two numbers and the paying band.</span></li>
+        <li><span class="date">Tue Oct 20 (end W5)</span><span class="what">All three tracks feature-complete for this scope: open → accrue → renew → park/resume → re-centre → close → admin withdraw, working end to end across all four rungs.</span></li>
+        <li><span class="date">Thu Oct 22, 2026</span><span class="what"><b>Target:</b> bug-bash and dry run done, ready to open to participants.</span></li>
+      </ul>
+    </div>
+    <div>
+      <div class="callout">
+        <h3>Watch these four</h3>
+        <ul>
+          <li><b>Backend has no slack at 173 hours</b> against a 175-hour window, and Leifu's ~35 hr/wk is already 1.75× his normal load for five straight weeks. Moving the eight ops hours off him is the cheapest fix and should happen regardless. Past that, the surface pipeline and the balance sheet are cleanly separable from the tick engine — that's where a second pair of hands would help, if one exists.</li>
+          <li><b>FrontendDevX is unstaffed as of this doc.</b> Frontend work starts in W1 alongside contracts and backend, not after. An empty seat here doesn't just delay frontend, it slips Oct 22 outright.</li>
+          <li><b>5000× ships with a known open hole.</b> Every test behind this model runs on price tapes, so it can only test bots that see past prices. A bot with a faster feed, or with the order book of the exchange the index follows, has never been tested against — and seventeen-second lives are exactly where one would live. The reserve per life still bounds the loss and this is play money, so the exposure is data rather than dollars. Watch the pricing-error monitor's logs on that rung from day one.</li>
+          <li><b>The free-capital check is the riskiest thing on the critical path.</b> Its predecessor was broken by two independent reviews, once to −$53,019 on a $1M pool, and the rolling-peak window is the specific part that goes wrong. It's 18 hours across two tracks, and it's the promise LPs are being asked to rely on. Port the reviews' drivers as tests; don't write fresh ones.</li>
+        </ul>
+        <p class="lede" style="margin-top:12px;margin-bottom:0;font-size:0.84rem;">Contracts is not a schedule risk: 38 itemized hours over five weeks is 7.6 hr/wk against a 10 hr/wk cap. Backend is the tight one — 173 hours against a 175-hour window is no slack at all, and only drops to a workable 165 if the eight ops hours move to someone else.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="cut-box">
+      <h3>Deferred to a post-launch hardening pass — not solved by this plan</h3>
+      <div class="table-wrap" style="margin-top:10px;">
+        <table>
+          <thead><tr><th>Cut</th><th>What it costs during the competition</th></tr></thead>
+          <tbody>
+            <tr><td>The pool's book hedge on Derive</td><td>At the daily rung the pool would lay its book's net imbalance off once a day by request for quote, taking about a third off its risk for about a third of its take. Cut here because nothing in a play-money testnet is at risk that a hedge would protect, and the reserve per life already bounds the loss. This belongs before real LP capital is admitted, not before a competition.</td></tr>
+            <tr><td>Options-backed positions and the monthly rungs</td><td>No rung ships with the trader's own protected options package bought on Derive. Blocked on things outside this plan anyway: venue margin treatment for a pool account is unresolved with Derive, there's no execution program, and the package fails its own fill test at daily and weekly tenors — the round trip costs more than a cycle's premium. Every position in the competition is written by the pool, and the desk says so.</td></tr>
+            <tr><td>The remaining four rungs (2×, 25×, 500×, 1000×)</td><td>Four of the ladder's eight ship — 1×, 5×, 100×, 5000× — spanning the range rather than filling it in. The rest are config rows in the same generator and cost almost nothing to add later; they'd give participants more choice, not a different product.</td></tr>
+            <tr><td>A book-imbalance bot test for 5000×</td><td>Not a cut so much as a gap we're shipping into. The tapes behind every number in this model contain prices, not order books, so no test here covers a trader with a faster feed at seventeen-second lives. The per-life reserve bounds what the pool can lose and the stakes are play money, so the competition itself is the test — but the top rung's monitor logs are the thing to read afterward, and this has to close before that rung sees real capital.</td></tr>
+            <tr><td>Automatic floor-raise in the pricing-error monitor</td><td>Priced-vs-realized share is logged per rung and a rung can be paused by hand; it won't retune its own edge. The monitor is designed to move on hundreds of lives, and a three-week competition barely fills that window at the lower rungs, so the automation would mostly not fire. Logging is what we actually want from this run.</td></tr>
+            <tr><td>A live implied-vol series and the per-expiry smile</td><td>The shipped table is built from one snapshot's smile. This plan does log a live implied series alongside the price feed from launch, so the data exists for the next version even though the pricing doesn't consume it live.</td></tr>
+            <tr><td>Self-serve Merkle withdrawal</td><td>Withdrawals are admin-processed, not trustless — fine for a short, team-run competition. Still the first thing to add back before any longer-lived or trust-minimized deployment. Full explanation in Track B.</td></tr>
+            <tr><td>Reduced test/security depth</td><td>Testnet stakes only, manual prize payout, so no full audit. Two exceptions held at full depth: the tick engine's settlement correctness and the free-capital invariant. Everything else stays shallow.</td></tr>
+            <tr><td>Net-imbalance cap and skew</td><td>A cap on how far the book can tilt toward Long or Short at a rung, with the edge rising on the heavy side. Not cut so much as not yet decided — it's an open proposal, and there's nothing to build until it's ruled on.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Model reference: <span class="mono">SPEC-yield-perp-unified-v0.6-2026-09-15.md</span> (revised 2026-09-18), with <span class="mono">CHANGES-yield-perp-testnet-v1-to-prepaid-2026-09-11.md</span> as the change record against testnet-v1. Earlier scoping is kept for reference in <a href="yield-perp-build-plan.html" style="color:var(--accent);">yield-perp-build-plan.html</a> (full-scope schedule) and the accelerated plan of Sep 9, both superseded by this one.
+  </footer>
+
+</div>
